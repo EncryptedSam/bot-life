@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
-*{
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+
+
+.brick-bg {
+  --s: 10px; /* control the size*/
+  --c1: #bd0000;
+  --c2: #000000;
+  
+  --g:conic-gradient(at 90% 40%,#0000 75%,var(--c1) 0);
+  background: var(--g),var(--g) var(--s) var(--s) var(--c2);
+  background-size: calc(2*var(--s)) calc(2*var(--s));
 }

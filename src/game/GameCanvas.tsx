@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { createHero, entities } from "../ecs/world";
-import { updatePosition, updateAnimation, render } from "../ecs/systems";
+import { createFruit, createHero, createSaw, entities } from "../ecs/world";
+import { updatePosition, updateAnimation, render, updateOscillators } from "../ecs/systems";
 
 const GameCanvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -8,7 +8,14 @@ const GameCanvas: React.FC = () => {
     useEffect(() => {
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext("2d")!;
-        createHero();
+        createHero(100, 100);
+        createFruit(200, 100, 'apple');
+        createFruit(300, 100, 'bananas');
+        createSaw(100, 200, {
+            pointA: { x: 100, y: 200 },
+            pointB: { x: 300, y: 200 },
+            speed: 60
+        });
 
         let lastTime = performance.now();
 
@@ -16,10 +23,13 @@ const GameCanvas: React.FC = () => {
             const delta = time - lastTime;
             lastTime = time;
 
-            updatePosition(entities, delta / 1000);
-            updateAnimation(entities, delta);
+            let flEntities = entities.filter(e => e.type !== "remove");
+
+            updatePosition(flEntities, delta / 1000);
+            updateOscillators(flEntities, delta);
+            updateAnimation(flEntities, delta);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            render(entities, ctx);
+            render(flEntities, ctx);
 
             requestAnimationFrame(gameLoop);
         }
