@@ -33,8 +33,8 @@ const Collision = () => {
     const [pointC, setPointC] = useState<Point | null>(null);
 
     const [bricks, setBricks] = useState<Brick[]>([
-        { x: 100, y: 100, width: 25, height: 25 },
-        // { x: 100, y: 200, width: 100, height: 100 },
+        // { x: 100, y: 100, width: 25, height: 25 },
+        { x: 100, y: 200, width: 100, height: 100 },
         // { x: 100, y: 200, width: 100, height: 100 },
     ]);
 
@@ -257,7 +257,7 @@ const Collision = () => {
                     return (
                         <div
                             key={`bick_${idx}`}
-                            className='absolute cursor-pointer border border-white text-white inline-flex items-center justify-center'
+                            className='absolute rounded-full cursor-pointer border border-white text-white inline-flex items-center justify-center'
                             style={{ width, height, left: x, top: y }}
                             onMouseDown={() => { setBrickId(idx) }}
                         >
