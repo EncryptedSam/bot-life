@@ -29,7 +29,7 @@ interface Board {
 
 function App() {
   const keys = useKeysPressed();
-  const [entity, setEntity] = useState<Entity>({ x: 250, y: 9000, radius: 20, dx: 0, dy: 0, flying: false });
+  const [entity, setEntity] = useState<Entity>({ x: 250, y: 9000, radius: 19, dx: 0, dy: 0, flying: false });
   // const [board, setBoard] = useState<Board>({ height: 1200, width: 502, bottom: 0, lowLImit: 900 })
   const [board, setBoard] = useState<Board>({ height: 9000, width: 502, bottom: 0, lowLImit: 9000 - 100 })
 
