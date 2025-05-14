@@ -151,193 +151,50 @@ const Collision = () => {
         let x2 = linePoints[1].x;
         let y2 = linePoints[1].y;
 
-        let hw = heroBox.width;
-        let hh = heroBox.height;
-
         let cx = circles[0].x;
         let cy = circles[0].y;
         let r = circles[0].radius;
 
         {
-            let A1: [number, number] = [x1 + hw, y1]
-            let B1: [number, number] = [x2 + hw, y2]
+            let p1 = { x: x1, y: y1 - r }
+            let p2 = { x: x1 + heroBox.width, y: y1 }
 
-            let A2: [number, number] = [x1, y1 + hh]
-            let B2: [number, number] = [x2, y2 + hh]
+            let maxd = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)) + r
 
-            let center: [number, number] = [cx, cy]
-            let radius = r;
+            let td = Math.sqrt(Math.pow(cx - x1, 2) + Math.pow(cy - y1, 2))
+            let bd = Math.sqrt(Math.pow(cx - p2.x, 2) + Math.pow(cy - p2.y, 2))
 
-
-            let res = isCircleBetweenTwoLines(A1, B1, A2, B2, center, radius);
-            console.log(res);
-        }
-
-        {
-            type Point = { x: number; y: number };
-
-            type Result = {
-                contacts: boolean;
-                position: "above" | "below" | "on";
-            };
-
-            function analyzeCircleLineContact(
-                linePoint1: Point,
-                linePoint2: Point,
-                circleCenter: Point,
-                r: number
-            ): Result {
-                const { x: x1, y: y1 } = linePoint1;
-                const { x: x2, y: y2 } = linePoint2;
-                const { x: cx, y: cy } = circleCenter;
-
-                // Line: Ax + By + C = 0
-                const A = y2 - y1;
-                const B = x1 - x2;
-                const C = x2 * y1 - x1 * y2;
-
-                // Distance from center to line
-                const distance = Math.abs(A * cx + B * cy + C) / Math.sqrt(A * A + B * B);
-
-                // Check if the circle contacts the line
-                const contacts = distance <= r;
-
-                // Determine if the circle is above, below, or on the line
-                const lineYAtCX = ((x2 - x1) === 0)
-                    ? Infinity // Vertical line
-                    : y1 + ((y2 - y1) / (x2 - x1)) * (cx - x1);
-
-                let position: Result["position"];
-                if (Math.abs(cy - lineYAtCX) < 1e-8) {
-                    position = "on";
-                } else {
-                    position = cy < lineYAtCX ? "above" : "below";
-                }
-
-                return { contacts, position };
-            }
-
-            let p1 = { x: x1 + hw, y: y1 }
-            let p2 = { x: x2 + hw, y: y2 }
-            let pc = { x: cx, y: cy }
-
-
-
-
-
-            // const result = analyzeCircleLineContact(p1, p2, pc, r);
-
-            // console.log(result);
+            console.log(maxd, td + bd);
 
         }
 
-        type Point = { x: number; y: number };
 
 
 
-        function isCircleIntersectingPolygon(
-            polygon: Point[],
-            circleCenter: Point,
-            radius: number
-        ): boolean {
-            // Step 1: Check if circle intersects any polygon edge
-            for (let i = 0; i < polygon.length; i++) {
-                const a = polygon[i];
-                const b = polygon[(i + 1) % polygon.length];
-                if (doesCircleIntersectLineSegment(circleCenter, radius, a, b)) {
-                    return true;
-                }
-            }
-
-            // Step 2: Check if circle center is inside polygon
-            if (isPointInPolygon(circleCenter, polygon)) {
-                return true;
-            }
-
-            // (Optional) Step 3: Check if polygon is fully inside the circle
-            // If needed: check if all vertices are within the circle
-
-            return false;
-        }
-
-        // Check if a point is inside polygon using ray casting
-        function isPointInPolygon(point: Point, polygon: Point[]): boolean {
-            let inside = false;
-            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-                const xi = polygon[i].x,
-                    yi = polygon[i].y;
-                const xj = polygon[j].x,
-                    yj = polygon[j].y;
-
-                const intersect =
-                    yi > point.y !== yj > point.y &&
-                    point.x <
-                    ((xj - xi) * (point.y - yi)) / (yj - yi + Number.EPSILON) + xi;
-                if (intersect) inside = !inside;
-            }
-            return inside;
-        }
-
-        // Check if circle intersects with a line segment
-        function doesCircleIntersectLineSegment(
-            circle: Point,
-            radius: number,
-            p1: Point,
-            p2: Point
-        ): boolean {
-            const dx = p2.x - p1.x;
-            const dy = p2.y - p1.y;
-            const l2 = dx * dx + dy * dy;
-
-            // Project center onto line segment, clamp between 0 and 1
-            const t = Math.max(
-                0,
-                Math.min(
-                    1,
-                    ((circle.x - p1.x) * dx + (circle.y - p1.y) * dy) / (l2 || 1)
-                )
-            );
-            const nearestX = p1.x + t * dx;
-            const nearestY = p1.y + t * dy;
-
-            const distX = circle.x - nearestX;
-            const distY = circle.y - nearestY;
-
-            return distX * distX + distY * distY <= radius * radius;
-        }
-        {
-
-            let x1 = linePoints[0].x;
-            let y1 = linePoints[0].y;
-
-            let x2 = linePoints[1].x;
-            let y2 = linePoints[1].y;
-
-            let hw = heroBox.width;
-            let hh = heroBox.height;
-
-            let cx = circles[0].x;
-            let cy = circles[0].y;
-            let r = circles[0].radius;
+        // let crossed = doesLineIntersectCircle(x1, y1, x2, y2, cx, cy, r);
+        // console.log(crossed);
 
 
-            let res = isCircleIntersectingPolygon(
-                [
-                    { x: x1, y: y1 },
-                    { x: x1 + hw, y: y1 },
-                    { x: x2 + hw, y: y2 },
-                    { x: x2 + hw, y: y2 + hh },
-                    { x: x2, y: y2 + hh },
-                    { x: x1, y: y1 + hh },
-                ],
-                { x: cx, y: cy },
-                r
-            );
-            console.log(res);
-        }
+        const circleRes = isCircleInPath(
+            linePoints[0],
+            linePoints[0],
+            heroBox.width,
+            heroBox.height,
+            { x: circles[0].x, y: circles[0].y },
+            circles[0].radius
+        )
 
 
+        // const collisionResult = detectFirstCollision(moving, velocity, bricks);
+        const collisionResult = detectFirstCollision(linePoints[0], linePoints[1], heroBox.width, heroBox.height, bricks);
+        // const collisionResult = detectDualAxisHits(linePoints[0], linePoints[1], heroBox.width, heroBox.height, bricks);
 
+
+        if (collisionResult == null) {
+            setPointC(null);
+            return;
+        };
+        collisionResult;
 
     }, [linePoints, heroBox, bricks, circles])
 

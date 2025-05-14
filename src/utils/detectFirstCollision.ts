@@ -96,6 +96,8 @@ function sweptAABB(
 
   const entryTime = Math.max(entry.x, entry.y);
   const exitTime = Math.min(exit.x, exit.y);
+  
+
 
   // Collision validation
   if (
@@ -106,6 +108,7 @@ function sweptAABB(
   ) {
     return null; // No valid collision
   }
+
 
   // Determine collision side
   let side: string;
