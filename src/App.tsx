@@ -69,6 +69,22 @@ function isMax(keys: string[], filtered: string[], key: string): boolean {
 
 // systems
 
+function initGame(entitiesRef: React.RefObject<Entity[]>) {
+  if (entitiesRef.current.length == 0) return;
+  const entities = entitiesRef.current;
+  const hero = entities.find(entity => entity.type === "hero");
+  if (!hero) {
+    const hero = createHero();
+    entities.push(hero);
+  }
+}
+
+function resetGame(entitiesRef: React.RefObject<Entity[]>) {
+  if (entitiesRef.current == null) return;
+  entitiesRef.current = [];
+  initGame(entitiesRef);
+}
+
 function updatePosition(entitiesRef: React.RefObject<Entity[]>, delta: number) {
   if (entitiesRef.current == null) return;
   const entities = entitiesRef.current;
@@ -80,7 +96,7 @@ function updatePosition(entitiesRef: React.RefObject<Entity[]>, delta: number) {
 }
 
 
-function handleInputKeys(entitiesRef: React.RefObject<Entity[]>, keys: string[]) {
+function processKeysInput(entitiesRef: React.RefObject<Entity[]>, keys: string[]) {
   if (keys.length == 0) return
   if (entitiesRef.current.length == 0) return;
   const entities = entitiesRef.current;
@@ -146,14 +162,8 @@ function App() {
   const entities = useRef<Entity[]>([]);
   const [render, setRender] = useState(performance.now());
 
-
-  const countRef = useRef<number>(9);
-
-
   const [hero, setHero] = useState<Hero>({ type: 'hero', position: { x: 250, y: 9000 }, radius: 19, velocity: { dx: 0, dy: 0 }, flying: false });
-  const [bullets, setBullets] = useState<Bullet[]>([
 
-  ])
 
 
   // const [board, setBoard] = useState<Board>({ height: 1200, width: 502, bottom: 0, lowLImit: 900 })
