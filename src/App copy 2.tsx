@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Circle from "./components/Circle";
 import Collision from "./components/Collision";
 import GameCanvas from "./game/GameCanvas";
@@ -12,7 +12,6 @@ export function filterKeys(keys: string[], ...allowed: string[]): string[] {
 
 
 interface Entity {
-  type: 'hero' | 'bullet'
   position: {
     x: number
     y: number
@@ -24,14 +23,13 @@ interface Entity {
 }
 
 interface Hero extends Entity {
-  type: 'hero'
   radius: number
   flying: boolean
 }
 
 interface Bullet extends Entity {
-  type: 'bullet'
-  isHit: boolean
+  radius: number
+  flying: boolean
 }
 
 interface Board {
@@ -41,116 +39,11 @@ interface Board {
   lowLImit: number
 }
 
-//util
-
-function isMax(keys: string[], filtered: string[], key: string): boolean {
-
-  const keyIndex = keys.indexOf(key);
-
-  if (keyIndex >= 0) {
-    filtered = filtered.filter(el => el !== key);
-    for (let i = 0; i < filtered.length; i++) {
-      const index = keys.indexOf(filtered[i]);
-      if (index > keyIndex) return false;
-    }
-
-    return true;
-  }
-
-  return false;
-}
-
-
-// let keys = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
-// let filtered = ['ArrowLeft', 'ArrowRight']
-// let key = 'ArrowRight'
-// console.log(isMax(keys, filtered, key))
-
-
-// systems
-
-function updatePosition(entitiesRef: React.RefObject<Entity[]>, delta: number) {
-  if (entitiesRef.current == null) return;
-  const entities = entitiesRef.current;
-
-  entities.forEach(({ position, velocity }) => {
-    position.x += velocity.dx * delta
-    position.y += velocity.dy * delta
-  })
-}
-
-
-function handleInputKeys(entitiesRef: React.RefObject<Entity[]>, keys: string[]) {
-  if (keys.length == 0) return
-  if (entitiesRef.current.length == 0) return;
-  const entities = entitiesRef.current;
-  const hero = entities.find(entity => entity.type === "hero");
-
-  if (keys.includes('Alt') && hero) {
-    const bullet = createBullet();
-    bullet.position = hero.position;
-    entities.push(bullet);
-  }
-
-
-  if (keys.length > 0 && hero) {
-    hero.velocity.dx = 0;
-    hero.velocity.dy = 0;
-
-    if (isMax(keys, ['ArrowRight', 'ArrowLeft'], 'ArrowLeft')) {
-      hero.velocity.dx = -1;
-    }
-
-    if (isMax(keys, ['ArrowRight', 'ArrowLeft'], 'ArrowRight')) {
-      hero.velocity.dx = 1;
-    }
-
-    if (isMax(keys, ['ArrowUp', 'ArrowDown'], 'ArrowUp')) {
-      hero.velocity.dy = 1;
-    }
-
-    if (isMax(keys, ['ArrowUp', 'ArrowDown'], 'ArrowDown')) {
-      hero.velocity.dy = -1;
-    }
-  }
-
-
-}
-
-// entities
-
-function createHero(position?: Hero['position']): Hero {
-
-  return {
-    type: 'hero',
-    position: { x: 250, y: 9000, ...position },
-    velocity: { dx: 0, dy: 0 },
-    radius: 19,
-    flying: false
-  }
-}
-
-function createBullet(position?: Bullet['position']): Bullet {
-
-  return {
-    type: 'bullet',
-    position: { x: 250, y: 9000, ...position },
-    velocity: { dx: 0, dy: 12 },
-    isHit: false
-  }
-}
-
-
 function App() {
   const keys = useKeysPressed();
-  const entities = useRef<Entity[]>([]);
-  const [render, setRender] = useState(performance.now());
 
-
-  const countRef = useRef<number>(9);
-
-
-  const [hero, setHero] = useState<Hero>({ type: 'hero', position: { x: 250, y: 9000 }, radius: 19, velocity: { dx: 0, dy: 0 }, flying: false });
+  
+  const [hero, setHero] = useState<Hero>({ position: { x: 250, y: 9000 }, radius: 19, velocity: { dx: 0, dy: 0 }, flying: false });
   const [bullets, setBullets] = useState<Bullet[]>([
 
   ])
@@ -195,6 +88,8 @@ function App() {
 
 
   useEffect(() => {
+
+
 
     setHero((prev) => {
       let copy: Hero = JSON.parse(JSON.stringify(prev));
@@ -246,6 +141,7 @@ function App() {
         copy.flying = true
       }
 
+
       return copy
     })
 
@@ -255,10 +151,10 @@ function App() {
 
 
   return (
-    <div className='flex justify-center items-center w-screen h-screen bg-gray-500'>
+    <div className='flex justify-center items-center w-screen h-screen bg-gray-900'>
 
 
-      <div className="relative w-[502px] border-black border-4 !box-content rounded-[2px] h-[600px] bg-gray-800 overflow-hidden" >
+      <div className="relative w-[502px] h-[600px] bg-gray-800 overflow-hidden" >
         <div
           className="absolute bg-white"
           style={{ height: board.height, width: board.width, bottom: board.bottom, }}
@@ -281,22 +177,3 @@ function App() {
 }
 
 export default App
-
-
-/**
- * 
-What ever I'm going to say just shove this into your head okay! 
-
-
-Beggars: 
-Their primary skill is begging! they know how to beg in different way, they developed it over the period of time!
-
-And You really think they leave they professional and adopt a skill which in demand!
-
-And You really think govt gonna spend money on this poor people and leverage them!
-
-
-
-
-* 
- */

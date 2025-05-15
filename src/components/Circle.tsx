@@ -17,7 +17,9 @@ const Circle = ({ x, y, radius, showCenter, flying, onMouseDown }: Props) => {
                 left: x,
                 top: y,
                 scale: flying ? 1.4 : 1,
-                filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))'
+                filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
+                // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)' 
+
             }}
         >
             {
@@ -50,6 +52,8 @@ const Circle = ({ x, y, radius, showCenter, flying, onMouseDown }: Props) => {
             <div
                 className='absolute z-[1] top-[6px] rounded-t-full left-[5px] w-[13px] h-[16px] border-2 border-black bg-white'
             />
+            {/* <div className="flame z-20"></div> */}
+
         </div>
     )
 }
