@@ -6,20 +6,18 @@ interface Props {
     radius: number
     flying: boolean
     showCenter?: boolean
-    onMouseDown?(): void
 }
 
-const Circle = ({ x, y, radius, showCenter, flying, onMouseDown }: Props) => {
+const Circle = ({ x, y, radius, showCenter, flying }: Props) => {
     return (
         <div
-            className='absolute inline-flex items-center justify-center w-0 h-0'
+            className='absolute z-[1] inline-flex items-center justify-center w-0 h-0'
             style={{
                 left: x,
                 top: y,
                 scale: flying ? 1.4 : 1,
                 filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
-                // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)' 
-
+                // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)'
             }}
         >
             {
@@ -36,7 +34,6 @@ const Circle = ({ x, y, radius, showCenter, flying, onMouseDown }: Props) => {
                     width: radius * 2,
                     height: radius * 2,
                 }}
-                onMouseDown={onMouseDown}
             />
 
             <div

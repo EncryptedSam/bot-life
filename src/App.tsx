@@ -1,18 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Circle from "./components/Circle";
-import Collision from "./components/Collision";
-import GameCanvas from "./game/GameCanvas";
-import { useKeystroke } from "./hooks/useKeystroke";
 import { useKeysPressed } from "./hooks/useKeysPressed";
+import Bullet from "./components/Bullet";
 
-export function filterKeys(keys: string[], ...allowed: string[]): string[] {
-  const allowedSet = new Set(allowed);
-  return keys.filter(key => allowedSet.has(key));
-}
+
+//====================================================== comopnents
 
 
 interface Entity {
-  type: 'hero' | 'bullet'
+  type: 'hero' | 'bullet' | 'status'
   position: {
     x: number
     y: number
@@ -21,6 +17,7 @@ interface Entity {
     dx: number
     dy: number
   }
+  isRemoved: boolean
 }
 
 interface Hero extends Entity {
@@ -34,6 +31,12 @@ interface Bullet extends Entity {
   isHit: boolean
 }
 
+interface Status extends Entity {
+  type: 'status'
+  lastBullet: number | null
+}
+
+
 interface Board {
   height: number
   width: number
@@ -41,7 +44,10 @@ interface Board {
   lowLImit: number
 }
 
-//util
+
+type AnyEntity = Hero | Bullet | Status
+
+//===================================================================== util
 
 function isMax(keys: string[], filtered: string[], key: string): boolean {
 
@@ -60,80 +66,94 @@ function isMax(keys: string[], filtered: string[], key: string): boolean {
   return false;
 }
 
+//===================================================================== system
 
-// let keys = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
-// let filtered = ['ArrowLeft', 'ArrowRight']
-// let key = 'ArrowRight'
-// console.log(isMax(keys, filtered, key))
-
-
-// systems
-
-function initGame(entitiesRef: React.RefObject<Entity[]>) {
-  if (entitiesRef.current.length == 0) return;
+function initGame(entitiesRef: React.RefObject<AnyEntity[]>) {
+  if (entitiesRef.current.length > 0) return;
   const entities = entitiesRef.current;
-  const hero = entities.find(entity => entity.type === "hero");
-  if (!hero) {
-    const hero = createHero();
-    entities.push(hero);
-  }
+
+  entities.push(createHero());
+  entities.push(createStatus())
 }
 
-function resetGame(entitiesRef: React.RefObject<Entity[]>) {
+function resetGame(entitiesRef: React.RefObject<AnyEntity[]>) {
   if (entitiesRef.current == null) return;
   entitiesRef.current = [];
   initGame(entitiesRef);
 }
 
-function updatePosition(entitiesRef: React.RefObject<Entity[]>, delta: number) {
+function updatePosition(entitiesRef: React.RefObject<AnyEntity[]>, delta: number) {
   if (entitiesRef.current == null) return;
   const entities = entitiesRef.current;
 
-  entities.forEach(({ position, velocity }) => {
-    position.x += velocity.dx * delta
-    position.y += velocity.dy * delta
+  entities.forEach((entity) => {
+    entity.position.x += entity.velocity.dx * delta
+    entity.position.y += entity.velocity.dy * delta
+
+    if (entity.type == 'bullet' && entity.position.y < 0) {
+      entity.isRemoved = true;
+    }
   })
 }
 
 
-function processKeysInput(entitiesRef: React.RefObject<Entity[]>, keys: string[]) {
-  if (keys.length == 0) return
+function processKeysInput(entitiesRef: React.RefObject<AnyEntity[]>, keys: string[]) {
   if (entitiesRef.current.length == 0) return;
   const entities = entitiesRef.current;
   const hero = entities.find(entity => entity.type === "hero");
 
-  if (keys.includes('Alt') && hero) {
-    const bullet = createBullet();
-    bullet.position = hero.position;
-    entities.push(bullet);
+  if (keys.includes(' ') && hero) {
+    const status = entities.find(entity => entity.type === "status");
+    if (!status) return;
+    let shoot = true;
+
+    if (typeof status.lastBullet == 'number') {
+      shoot = (performance.now() - status.lastBullet) / 300 > 1;
+    }
+
+    if (shoot) {
+      const bullet = createBullet({ ...hero.position });
+      entities.push(bullet);
+      status.lastBullet = performance.now();
+    }
+
   }
 
 
-  if (keys.length > 0 && hero) {
+  if (hero) {
     hero.velocity.dx = 0;
     hero.velocity.dy = 0;
 
     if (isMax(keys, ['ArrowRight', 'ArrowLeft'], 'ArrowLeft')) {
-      hero.velocity.dx = -1;
+      hero.velocity.dx = -100;
     }
 
     if (isMax(keys, ['ArrowRight', 'ArrowLeft'], 'ArrowRight')) {
-      hero.velocity.dx = 1;
+      hero.velocity.dx = 100;
     }
 
     if (isMax(keys, ['ArrowUp', 'ArrowDown'], 'ArrowUp')) {
-      hero.velocity.dy = 1;
+      hero.velocity.dy = -100;
     }
 
     if (isMax(keys, ['ArrowUp', 'ArrowDown'], 'ArrowDown')) {
-      hero.velocity.dy = -1;
+      hero.velocity.dy = 100;
     }
   }
 
-
 }
 
-// entities
+function cleanupRemovedEntities(entitiesRef: React.RefObject<AnyEntity[]>): void {
+  if (entitiesRef.current.length == 0) return;
+  const entities = entitiesRef.current;
+  for (let i = entities.length - 1; i >= 0; i--) {
+    if (entities[i].isRemoved) {
+      entities.splice(i, 1);
+    }
+  }
+}
+
+//======================================================================= entities
 
 function createHero(position?: Hero['position']): Hero {
 
@@ -142,28 +162,41 @@ function createHero(position?: Hero['position']): Hero {
     position: { x: 250, y: 9000, ...position },
     velocity: { dx: 0, dy: 0 },
     radius: 19,
+    isRemoved: false,
     flying: false
   }
 }
 
-function createBullet(position?: Bullet['position']): Bullet {
+function createBullet(position: Bullet['position']): Bullet {
 
   return {
     type: 'bullet',
-    position: { x: 250, y: 9000, ...position },
-    velocity: { dx: 0, dy: 12 },
-    isHit: false
+    position,
+    velocity: { dx: 0, dy: -150 },
+    isHit: false,
+    isRemoved: false,
   }
 }
 
 
+function createStatus(): Status {
+
+  return {
+    type: 'status',
+    position: { x: 0, y: 0 },
+    velocity: { dx: 0, dy: 0 },
+    lastBullet: null,
+    isRemoved: false,
+  }
+}
+
+// -=============================================== APP.TS
+
+
 function App() {
-  const keys = useKeysPressed();
-  const entities = useRef<Entity[]>([]);
+
+  const entities = useRef<AnyEntity[]>([]);
   const [render, setRender] = useState(performance.now());
-
-  const [hero, setHero] = useState<Hero>({ type: 'hero', position: { x: 250, y: 9000 }, radius: 19, velocity: { dx: 0, dy: 0 }, flying: false });
-
 
 
   // const [board, setBoard] = useState<Board>({ height: 1200, width: 502, bottom: 0, lowLImit: 900 })
@@ -172,96 +205,49 @@ function App() {
 
   useEffect(() => {
 
-    let interval = window.setInterval(() => {
-      setHero((prev) => {
-        let copy: Hero = JSON.parse(JSON.stringify(prev));
-        let { velocity: { dx, dy }, position } = copy;
 
-        position.x += dx
-        position.y += dy
+    let lastTime = performance.now();
 
-        let ldy = 0;
-        if (position.y < board.lowLImit) {
-          ldy = board.lowLImit - position.y;
-        }
+    let request: any;
 
-        // setBoard((prev) => {
-        //   let copy: Board = JSON.parse(JSON.stringify(prev));
-        //   copy.bottom = -ldy;
-        //   return copy
-        // })
+    function gameLoop(time: number) {
+      const delta = time - lastTime;
+      lastTime = time;
 
-        return copy
-      })
-
-    }, 1)
-
-    return () => {
-      window.clearInterval(interval);
+      initGame(entities);
+      cleanupRemovedEntities(entities);
+      updatePosition(entities, delta / 1000);
+      setRender(performance.now());
+      request = requestAnimationFrame(gameLoop);
     }
 
-  }, [])
+    requestAnimationFrame(gameLoop);
 
-
+    return () => {
+      cancelAnimationFrame(request);
+    };
+  }, []);
 
   useEffect(() => {
+    const keysSet = new Set<string>();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      keysSet.add(event.key);
+      processKeysInput(entities, [...keysSet]);
+    };
 
-    setHero((prev) => {
-      let copy: Hero = JSON.parse(JSON.stringify(prev));
-      copy.velocity.dx = 0
-      copy.velocity.dy = 0
-      copy.flying = false
+    const handleKeyUp = (event: KeyboardEvent) => {
+      keysSet.delete(event.key);
+      processKeysInput(entities, [...keysSet]);
+    };
 
-      const filtered = filterKeys(keys, "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight");
-      const filteredKeys = filtered.splice(-2);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
-
-      function isMax(key: string): boolean {
-
-        if (filteredKeys.includes('ArrowUp') && filteredKeys.includes('ArrowDown')) {
-          if (filteredKeys.indexOf(key) == filteredKeys.length - 1) {
-            return true
-          }
-          return false;
-        }
-
-        if (filteredKeys.includes('ArrowRight') && filteredKeys.includes('ArrowLeft')) {
-          if (filteredKeys.indexOf(key) == filteredKeys.length - 1) {
-            return true
-          }
-          return false;
-        }
-
-        return true;
-      }
-
-
-      if (filteredKeys.includes('ArrowUp') && isMax('ArrowUp')) {
-        copy.velocity.dy = -1
-      }
-
-      if (filteredKeys.includes('ArrowDown') && isMax('ArrowDown')) {
-        copy.velocity.dy = 1
-      }
-
-      if (filteredKeys.includes('ArrowRight') && isMax('ArrowRight')) {
-        copy.velocity.dx = 1
-      }
-
-      if (filteredKeys.includes('ArrowLeft') && isMax('ArrowLeft')) {
-        copy.velocity.dx = -1
-      }
-
-      if (keys.includes(' ')) {
-        copy.flying = true
-      }
-
-      return copy
-    })
-
-
-  }, [keys.toString()])
-
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
 
   return (
@@ -277,7 +263,35 @@ function App() {
             className="absolute left-0 bottom-0 graph"
             style={{ height: board.height, width: board.width }}
           />
-          <Circle radius={hero.radius} x={hero.position.x} y={hero.position.y} flying={hero.flying} />
+          {
+            entities.current.map((entity, idx) => {
+              const entities = [];
+
+              if (entity.type == 'hero') {
+                entities.push(
+                  <Circle
+                    key={`entity_${idx}`}
+                    x={entity.position.x}
+                    y={entity.position.y}
+                    radius={entity.radius as Hero['radius']}
+                    flying={entity.flying}
+                  />
+                )
+              }
+
+              if (entity.type == 'bullet') {
+                entities.push(
+                  <Bullet
+                    key={`entity_${idx}`}
+                    x={entity.position.x}
+                    y={entity.position.y}
+                  />
+                )
+              }
+
+              return entities;
+            })
+          }
         </div>
       </div>
 
