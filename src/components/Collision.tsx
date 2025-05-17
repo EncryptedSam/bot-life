@@ -4,7 +4,7 @@ import { detectFirstHit } from '../utils/detectFirstHit'
 import { detectFirstCollision } from '../utils/detectFirstCollision'
 import { detectDualAxisHits } from '../utils/detectDualAxisHits'
 import { sweptAABBvsCircle } from '../utils/sweptAABBvsCircle'
-import Circle from './Circle'
+import Circle from './Hero'
 import { isCircleInPath } from '../utils/isCircleInPath'
 
 

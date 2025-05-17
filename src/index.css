@@ -86,3 +86,33 @@
     opacity: 1;
   }
 }
+
+@keyframes upDown {
+  0% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.firing {
+  animation: upDown 200ms step-end infinite;
+}
+
+@keyframes moveBackground {
+  from {
+    background-position-y: -2px;
+  }
+  to {
+    background-position-y: 98px;
+  }
+}
+
+.moving-background {
+  background-repeat: repeat-y repeat-x;
+  /* animation: moveBackground 1000ms linear infinite; */
+}

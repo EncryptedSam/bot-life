@@ -19,7 +19,7 @@ const Bullet = ({ x, y }: Props) => {
             }}
         >
             <div
-                className='absolute rounded-t-full w-[7px] h-[16px] border-2 border-black bg-white'
+                className='absolute rounded-t-full w-[7px] h-[16px] border-2 border-black bg-gray-300'
             >
                 <hr className='absolute border-[1px] w-full bottom-[2px]' />
             </div>

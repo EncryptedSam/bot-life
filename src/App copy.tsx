@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Circle from "./components/Circle";
+import Circle from "./components/Hero";
 import Collision from "./components/Collision";
 import GameCanvas from "./game/GameCanvas";
 import { useKeystroke } from "./hooks/useKeystroke";
