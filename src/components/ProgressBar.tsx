@@ -18,7 +18,7 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
 
 
 
-    const getBarsStyle = (element?: 'wrapper' | 'total' | 'sub') => {
+    const getBarsStyle = (element?: 'wrapper' | 'total' | 'sub' | 'total-align' | 'sub-align') => {
 
         if (element == 'wrapper') {
 
@@ -42,6 +42,26 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
                 return 'rounded-tl-full !mt-[-6px] right-0'
             }
 
+        }
+
+        if (element == 'total-align') {
+            if (align == 'left') {
+                return 'left-0'
+            }
+
+            if (align == 'right') {
+                return 'right-0'
+            }
+        }
+
+        if (element == 'sub-align') {
+            if (align == 'left') {
+                return 'left-0'
+            }
+
+            if (align == 'right') {
+                return 'right-0'
+            }
         }
 
     }
@@ -80,7 +100,7 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
                                 className={`border-2 absolute overflow-hidden text-white bg-white border-black w-[40px] h-[8px] ${getBarsStyle('total')}`}
                             >
                                 <div
-                                    className='absolute left-0 h-full bg-gray-500'
+                                    className={`absolute h-full bg-gray-500 ${getBarsStyle('total-align')}`}
                                     style={{ width: `${value.total}%` }}
                                 />
                             </div>
@@ -90,33 +110,13 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
                             value.sub &&
                             <div className='border-2 relative overflow-hidden border-black w-[90px] h-[14px] rounded-full bg-white' >
                                 <div
-                                    className='absolute left-0 h-full bg-gray-400'
+                                    className={`absolute h-full bg-gray-400 ${getBarsStyle('sub-align')}`}
                                     style={{ width: `${value.sub}%` }}
                                 />
                             </div>
                         }
                     </>
                 }
-                {/* {
-                    value && <>
-                        {
-                            <div
-                                className='!mb-[-2px] !pl-[10px] border-2 overflow-hidden text-white  border-black w-[70px] h-[16px] rounded-tr-full bg-gray-100 inline-flex items-center'
-                            >
-                                <span className='text-[10px] font-bold text-gray-950' >Energy</span>
-                            </div>
-                        }
-
-                        {
-                            <div className='border-2 relative overflow-hidden border-black w-[90px] h-[14px] rounded-full bg-white' >
-                                <div
-                                    className='absolute left-0 h-full bg-gray-400'
-                                    style={{ width: `${value.sub}%` }}
-                                />
-                            </div>
-                        }
-                    </>
-                } */}
 
             </div>
             {align == 'right' && iconHolder}

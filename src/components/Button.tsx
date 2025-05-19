@@ -1,14 +1,16 @@
 import React from 'react'
+import { BsBoxes } from 'react-icons/bs'
 import { CiSettings } from 'react-icons/ci'
-import { GoZap } from 'react-icons/go'
-import { IoPauseOutline, IoPlayOutline, IoSettingsOutline } from 'react-icons/io5'
+import { GoGift, GoZap } from 'react-icons/go'
+import { IoGameControllerOutline, IoPauseOutline, IoPlayOutline, IoSettingsOutline } from 'react-icons/io5'
+import { TbArrowsExchange2 } from 'react-icons/tb'
 
 interface Props {
     x: number
     y: number
     onClick?(): void
     align?: 'left' | 'right'
-    value?: 'settings' | 'play' | 'pause'
+    value?: 'settings' | 'play' | 'pause' | 'gifts' | 'exchange' | 'vault' | 'gamepad'
 }
 
 const Button = ({ x, y, align = 'left', value }: Props) => {
@@ -29,6 +31,10 @@ const Button = ({ x, y, align = 'left', value }: Props) => {
             {value == 'pause' && <IoPauseOutline size={20} />}
             {value == 'play' && <IoPlayOutline size={20} />}
             {value == 'settings' && <IoSettingsOutline size={20} />}
+            {value == 'gifts' && <GoGift size={20} />}
+            {value == 'exchange' && <TbArrowsExchange2 size={20} />}
+            {value == 'vault' && <BsBoxes size={20} />}
+            {value == 'gamepad' && <IoGameControllerOutline size={20} />}
         </button>
     )
 }

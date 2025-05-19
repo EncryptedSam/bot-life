@@ -116,3 +116,12 @@
   background-repeat: repeat-y repeat-x;
   /* animation: moveBackground 1000ms linear infinite; */
 }
+
+.scroll-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scroll-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}

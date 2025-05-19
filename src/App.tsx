@@ -4,6 +4,8 @@ import { useKeysPressed } from "./hooks/useKeysPressed";
 import Bullet from "./components/Bullet";
 import ProgressBar from "./components/ProgressBar";
 import ScoreBoard from "./components/ScoreBoard";
+import Droppable from "./components/Droppable";
+import Collection from "./components/Collection";
 
 
 //====================================================== comopnents
@@ -158,7 +160,7 @@ function createHero(position?: Hero['position']): Hero {
 
   return {
     type: 'hero',
-    position: { x: 250, y: 560, ...position },
+    position: { x: 230, y: 650, ...position },
     velocity: { dx: 0, dy: 0 },
     radius: 19,
     state: 'idle',
@@ -257,25 +259,8 @@ function App() {
 
         <div className="absolute left-0 bottom-0 graph w-full h-full moving-background" />
 
-        <div
-          className="absolute top-[39px] left-60 w-[40px] h-[40px] rounded-[4px] border-2 bg-white"
-          style={{
-            filter: 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
-            // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)'
-          }}
-        >
+        <Droppable />
 
-        </div>
-
-        <div
-          className="absolute top-80 rounded-full left-60 w-[40px] h-[40px]  border-2 bg-white"
-          style={{
-            filter: 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
-            // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)'
-          }}
-        >
-
-        </div>
 
         {
           entities.current.map((entity, idx) => {
@@ -312,25 +297,15 @@ function App() {
 
         <ScoreBoard />
 
-        {/* <ProgressBar
-          x={10}
-          y={10}
-        />
-        <ProgressBar
-          x={10}
-          y={60}
-        />
-        <ProgressBar
-          x={10}
-          y={120}
-        /> */}
+        <div className="absolute flex items-center justify-center top-0 left-0 w-full h-full z-20" >
+          <div
+            className="absolute bg-black opacity-[0.6] w-full h-full top-0 left-0"
+          />
+          <Collection />
+        </div>
+
       </div>
 
-
-
-
-      {/* <Collision /> */}
-      {/* <GameCanvas /> */}
     </div>
   )
 }
