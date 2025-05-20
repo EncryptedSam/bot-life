@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BiX } from 'react-icons/bi'
-import { BsChevronCompactRight, BsChevronLeft, BsChevronRight, BsEmojiExpressionless, BsPlus, BsSubtract } from 'react-icons/bs'
+import { BsChevronCompactRight, BsChevronLeft, BsChevronRight, BsEmojiExpressionless } from 'react-icons/bs'
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { GiBullets } from 'react-icons/gi'
 import { GoZap } from 'react-icons/go'
@@ -9,13 +9,13 @@ import { PiMoneyThin } from 'react-icons/pi'
 type Tab = 'drops' | 'convert'
 
 
-const Collection = () => {
+const Vault = () => {
     const [currentTab, setCurrentTab] = useState<Tab>('drops');
 
     const getClassNames = (isTrue: boolean) => {
 
         if (isTrue) {
-            return 'bg-white border-b-0 !pb-[2px]'
+            return 'relative bg-white border-b-0 !pb-[2px]'
         }
 
         return 'bg-gray-300'
@@ -23,29 +23,34 @@ const Collection = () => {
 
     return (
         <div
-            className="relative flex flex-col w-[300px] rounded-[4px] "
+            className="relative flex flex-col w-[300px] rounded-lg  bg-gray-300 overflow-hidden"
             style={{
                 filter: 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))'
             }}
         >
-            <div className='relative h-[28px] !mb-[-2px]' >
+            <div 
+                className='absolute z-[-1] w-full h-full border-2 rounded-lg'
+            />
+
+
+            <div className='relative h-[28px] !mb-[-2px] !space-x-[-8px]' >
                 <button
-                    className={`w-[100px] text-sm border-2 font-medium rounded-tl-lg rounded-tr-lg  h-full cursor-pointer ${getClassNames(currentTab == 'drops')}`}
+                    className={`w-[120px] text-sm border-2 font-medium rounded-tl-lg rounded-tr-lg  h-full cursor-pointer ${getClassNames(currentTab == 'drops')}`}
                     onClick={() => { setCurrentTab('drops') }}
                 >
                     Drops
                 </button>
                 <button
-                    className={`w-[100px] text-sm border-2 font-medium rounded-tl-lg rounded-tr-lg h-full cursor-pointer ${getClassNames(currentTab == 'convert')}`}
+                    className={`w-[120px] text-sm border-2 font-medium rounded-tl-lg rounded-tr-lg h-full cursor-pointer ${getClassNames(currentTab == 'convert')}`}
                     onClick={() => { setCurrentTab('convert') }}
                 >
                     Convert
                 </button>
-                <button className='absolute right-0 text-2xl text-gray-300 cursor-pointer' >
+                <button className='absolute h-full inline-flex items-center justify-center right-1 text-2xl text-black cursor-pointer' >
                     <BiX />
                 </button>
             </div>
-            <div className='flex-1 bg-white border-2 rounded-b-lg rounded-tr-lg border-black' >
+            <div className='flex-1 bg-white border-2 rounded-b-lg border-black' >
 
                 {
                     currentTab == 'drops' &&
@@ -119,20 +124,20 @@ const Collection = () => {
                             <div className='inline-flex items-center text-sm !space-x-2'>
                                 <span className='inline-block font-medium' >1</span>
                                 <div className='inline-flex items-center !space-x-1 border-2 rounded-[4px]' >
-                                    <button className='inline-flex w-[25px]  h-[20px] justify-center items-center border-0 border-r-2 ' >
+                                    <button className='inline-flex w-[25px] bg-gray-200 h-[20px] justify-center items-center border-0 border-r-2 cursor-pointer' >
                                         <FiMinus size={16} />
                                     </button>
                                     <div className='inline-flex font-medium justify-center items-center  h-full w-[50px] ' >
                                         2888
                                     </div>
-                                    <button className='inline-flex w-[25px]  h-[20px] justify-center items-center border-0 border-l-2' >
+                                    <button className='inline-flex w-[25px] bg-gray-200 h-[20px] justify-center items-center border-0 border-l-2 cursor-pointer' >
                                         <FiPlus size={16} />
                                     </button>
                                 </div>
                                 <span className='inline-block w-0 font-medium' >1000</span>
                             </div>
                         </div>
-                        <button className='inline-flex !px-2 rounded-[4px] font-medium text-sm justify-center items-center border-2' >Exchange</button>
+                        <button className='inline-flex !px-2 rounded-[4px] bg-gray-200 font-medium text-sm justify-center items-center border-2 cursor-pointer' >Exchange</button>
                     </div>
                 }
 
@@ -142,53 +147,5 @@ const Collection = () => {
     )
 }
 
-export default Collection
-
-
-let a = `
-  <div className='inline-flex items-center w-full' >
-                            {/* <div className='bg-white inline-flex rotate-45 items-center justify-center z-0 h-[18px] w-[18px]  border-2' >
-                                <GoZap className='-rotate-45' size={12} />
-                            </div> */}
-                            <div className='bg-white inline-flex items-center justify-center z-0 h-[18px] w-[18px]  border-2 rounded-full' >
-                                <GoZap size={12} />
-                            </div>
-                            <div className='!ml-[-8px] flex-1 h-[12px] rounded-full border-2' >
-
-                            </div>
-                        </div>
-                        <div className='inline-flex items-center w-full' >
-                            {/* <div className='bg-white inline-flex rotate-45 items-center justify-center z-0 h-[18px] w-[18px]  border-2' >
-                                <GoZap className='-rotate-45' size={12} />
-                            </div> */}
-                            <div className='bg-white inline-flex items-center justify-center z-0 h-[18px] w-[18px]  border-2 rounded-full' >
-                                <GoZap size={12} />
-                            </div>
-                            <div className='!ml-[-8px] w-[70px] h-[12px] rounded-full border-2' >
-
-                            </div>
-                        </div>
-                        <div className='inline-flex items-center w-full' >
-                            {/* <div className='bg-white inline-flex rotate-45 items-center justify-center z-0 h-[18px] w-[18px]  border-2' >
-                                <GoZap className='-rotate-45' size={12} />
-                            </div> */}
-                            <div className='bg-white inline-flex items-center justify-center z-0 h-[18px] w-[18px]  border-2 rounded-full' >
-                                <GoZap size={12} />
-                            </div>
-                            <div className='!ml-[-8px] w-[70px] h-[12px] rounded-full border-2' >
-
-                            </div>
-                        </div>
-                        <div className='inline-flex items-center w-full' >
-                            {/* <div className='bg-white inline-flex rotate-45 items-center justify-center z-0 h-[18px] w-[18px]  border-2' >
-                                <GoZap className='-rotate-45' size={12} />
-                            </div> */}
-                            <div className='bg-white inline-flex items-center justify-center z-0 h-[18px] w-[18px]  border-2 rounded-full' >
-                                <GoZap size={12} />
-                            </div>
-                            <div className='!ml-[-8px] w-[70px] h-[12px] rounded-full border-2' >
-
-                            </div>
-                        </div>
-                `
+export default Vault
 

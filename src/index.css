@@ -125,3 +125,19 @@
 .scroll-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, and Opera */
 }
+
+.water {
+  height: 100px;
+  width: 100px;
+  border-radius: 1.5% 100%;
+  background: #000;
+}
+
+.tear {
+  display: inline-block;
+  transform: rotate(45deg);
+  border: 5px solid green;
+  width: 100px;
+  height: 100px;
+  border-radius: 1% 100%;
+}

@@ -1,4 +1,5 @@
 import React from 'react'
+import Jet from './Jet'
 
 interface Props {
     x: number
@@ -21,13 +22,6 @@ const Hero = ({ x, y, radius, showCenter, flying, firing }: Props) => {
                 // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)'
             }}
         >
-            {
-                showCenter &&
-                <div
-                    className='absolute shrink-0 border border-red-600 rounded-full cursor-pointer'
-                    style={{ width: 4, height: 4 }}
-                />
-            }
 
             <div
                 className='absolute shrink-0 border-black border-2 rounded-full cursor-pointer bg-gray-200'
@@ -35,13 +29,24 @@ const Hero = ({ x, y, radius, showCenter, flying, firing }: Props) => {
                     width: radius * 2,
                     height: radius * 2,
                 }}
-            />
+            >
+                <div 
+                    className='absolute rotate-45 left-[4px] top-[-4px] border-t-0 border-l-0 w-[26px] h-[26px] border-2'
+
+                />
+
+            </div>
 
             <>
                 {/* shooter-head */}
                 <div
                     className={`absolute z-[1] bottom-[0px] rounded-b-full right-[-9px] w-[17px] h-[20px] border-2 border-black bg-gray-300`}
-                />
+                >
+                    <div
+                        className='absolute border top-[3px] w-full '
+                    />
+
+                </div>
 
                 <div
                     className={`absolute z-[-2] bottom-[4px] rounded-b-full right-[-6px] w-[11px] h-[20px] border-2 border-black bg-white ${firing ? 'firing' : ''}`}
@@ -55,6 +60,14 @@ const Hero = ({ x, y, radius, showCenter, flying, firing }: Props) => {
                 />
                 <div
                     className='absolute z-[1] top-[6px] rounded-t-full left-[5px] w-[13px] h-[16px] border-2 border-black bg-gray-400'
+                />
+            </>
+            <>
+                <Jet
+                    align='right'
+                />
+                <Jet
+                    align='left'
                 />
             </>
         </div>

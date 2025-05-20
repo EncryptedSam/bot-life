@@ -5,7 +5,7 @@ import Bullet from "./components/Bullet";
 import ProgressBar from "./components/ProgressBar";
 import ScoreBoard from "./components/ScoreBoard";
 import Droppable from "./components/Droppable";
-import Collection from "./components/Collection";
+import Vault from "./components/Vault";
 
 
 //====================================================== comopnents
@@ -248,6 +248,13 @@ function App() {
     };
   }, []);
 
+  // return (
+  //   <div className="h-screen w-screen relative bg-gray-600" >
+
+  //     <Hero x={800} y={300} firing={false} flying={false} radius={19}  />
+  //   </div>
+  // )
+
   return (
     <div className='flex justify-center items-center w-screen h-screen bg-[#1E1E1E]'>
 
@@ -296,16 +303,15 @@ function App() {
         }
 
         <ScoreBoard />
-
+        {/* 
         <div className="absolute flex items-center justify-center top-0 left-0 w-full h-full z-20" >
           <div
             className="absolute bg-black opacity-[0.6] w-full h-full top-0 left-0"
           />
-          <Collection />
+          <Vault />
         </div>
-
+         */}
       </div>
-
     </div>
   )
 }
