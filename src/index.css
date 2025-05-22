@@ -87,7 +87,7 @@
   }
 }
 
-@keyframes upDown {
+@keyframes firing {
   0% {
     transform: translateY(2px);
   }
@@ -100,7 +100,23 @@
 }
 
 .firing {
-  animation: upDown 200ms step-end infinite;
+  animation: firing 200ms step-end infinite;
+}
+
+@keyframes jet-firing {
+  0% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.jet-firing {
+  animation: jet-firing 100ms step-end infinite;
 }
 
 @keyframes moveBackground {
@@ -114,7 +130,7 @@
 
 .moving-background {
   background-repeat: repeat-y repeat-x;
-  /* animation: moveBackground 1000ms linear infinite; */
+  animation: moveBackground 1000ms linear infinite;
 }
 
 .scroll-hide {

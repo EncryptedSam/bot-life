@@ -1,13 +1,14 @@
 [ ] home
-[ ] pause
+[ ] keyboard settings
+
+[x] pause
         - restart
         - home
         - play
 
-[ ] joystick
+[x] joystick
         - jump
         - shoot
         - move
 
-[ ] keyboard settings
 

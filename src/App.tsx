@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Hero from "./components/Hero";
-import { useKeysPressed } from "./hooks/useKeysPressed";
 import Bullet from "./components/Bullet";
-import ProgressBar from "./components/ProgressBar";
 import ScoreBoard from "./components/ScoreBoard";
 import Droppable from "./components/Droppable";
 import Vault from "./components/Vault";
+import JoyStick from "./components/JoyStick";
+import GamePad from "./components/GamePad";
+import PauseCard from "./components/PauseCard";
+import Modal from "./components/Modal";
+import Bindings from "./components/Bindings";
 
 
 //====================================================== comopnents
@@ -275,7 +278,7 @@ function App() {
 
 
             if (entity.type == 'hero') {
-              // console.log(entity.state == 'firing');
+
               entities.push(
                 <Hero
                   key={`entity_${idx}`}
@@ -303,14 +306,24 @@ function App() {
         }
 
         <ScoreBoard />
+        <GamePad />
+
+
         {/* 
-        <div className="absolute flex items-center justify-center top-0 left-0 w-full h-full z-20" >
-          <div
-            className="absolute bg-black opacity-[0.6] w-full h-full top-0 left-0"
-          />
-          <Vault />
-        </div>
-         */}
+          <div className="absolute flex items-center justify-center top-0 left-0 w-full h-full z-20" >
+            <div
+              className="absolute bg-white opacity-[0.6] w-full h-full top-0 left-0"
+            />
+          </div> 
+        */}
+
+        <Modal>
+          {/* <PauseCard /> */}
+          {/* <Vault /> */}
+          <Bindings />
+        </Modal>
+
+
       </div>
     </div>
   )
