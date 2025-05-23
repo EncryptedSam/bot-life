@@ -1,5 +1,5 @@
-[ ] home
-[ ] keyboard settings
+
+[x] keyboard settings
 
 [x] pause
         - restart
@@ -11,4 +11,6 @@
         - shoot
         - move
 
+[ ] home
+[ ] you lose page
 

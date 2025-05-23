@@ -9,6 +9,7 @@ import GamePad from "./components/GamePad";
 import PauseCard from "./components/PauseCard";
 import Modal from "./components/Modal";
 import Bindings from "./components/Bindings";
+import YouLose from "./components/YouLose";
 
 
 //====================================================== comopnents
@@ -320,7 +321,8 @@ function App() {
         <Modal>
           {/* <PauseCard /> */}
           {/* <Vault /> */}
-          <Bindings />
+          {/* <Bindings /> */}
+          <YouLose />
         </Modal>
 
 
