@@ -11,8 +11,8 @@ const YouLose = () => {
             }}
         >
             <div className='!mb-[10px] text-center !space-y-[-6px]' >
-                <h1 className='text-2xl font-medium '>YOU LOSE</h1>
-                <p className='text-lg font-medium '>Try Again?</p>
+                <h1 className='text-2xl font-medium'>YOU LOSE</h1>
+                <p className='text-lg font-medium'>Try Again?</p>
             </div>
 
             <div className='absolute text-[16px] font-medium h-0 bottom-[-2px] !space-x-3 w-full flex justify-center items-center' >

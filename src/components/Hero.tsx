@@ -4,33 +4,33 @@ import Jet from './Jet'
 interface Props {
     x: number
     y: number
-    radius: number
     firing: boolean
     flying: boolean
     showCenter?: boolean
+    scale?: number
 }
 
-const Hero = ({ x, y, radius, showCenter, flying, firing }: Props) => {
+const Hero = ({ x, y, flying, firing, scale }: Props) => {
     return (
         <div
             className='absolute z-[1] inline-flex items-center justify-center w-0 h-0'
             style={{
                 left: x,
                 top: y,
-                scale: flying ? 1.4 : 1,
+                // scale: flying ? 1.4 : 1,
+                scale: scale,
                 filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
-                // transform: 'perspective(600px) rotateY(30deg) scaleX(1.2)'
             }}
         >
 
             <div
                 className='absolute shrink-0 border-black border-2 rounded-full cursor-pointer bg-gray-200'
                 style={{
-                    width: radius * 2,
-                    height: radius * 2,
+                    width: 19 * 2,
+                    height: 19 * 2,
                 }}
             >
-                <div 
+                <div
                     className='absolute rotate-45 left-[4px] top-[-4px] border-t-0 border-l-0 w-[26px] h-[26px] border-2'
 
                 />

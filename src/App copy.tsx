@@ -3,10 +3,18 @@ import Hero from "./components/Hero";
 import Bullet from "./components/Bullet";
 import ScoreBoard from "./components/ScoreBoard";
 import Droppable from "./components/Droppable";
+import Vault from "./components/Vault";
+import JoyStick from "./components/JoyStick";
 import GamePad from "./components/GamePad";
-import { usePreventBrowserDefaults } from "./hooks/usePreventBrowserDefaults";
+import PauseCard from "./components/PauseCard";
+import Modal from "./components/Modal";
+import Bindings from "./components/Bindings";
+import YouLose from "./components/YouLose";
+import Intro from "./components/Intro";
+
 
 //====================================================== comopnents
+
 
 interface Entity {
   type: 'hero' | 'bullet' | 'status'
@@ -193,7 +201,7 @@ function createStatus(): Status {
 
 
 function App() {
-  usePreventBrowserDefaults();
+  // const keys = useKeysPressed();
   const entities = useRef<AnyEntity[]>([]);
   const [render, setRender] = useState(performance.now());
 
@@ -248,16 +256,17 @@ function App() {
 
 
   return (
-    <div
-      className="bg-[#1E1E1E] flex justify-center h-screen"
-    >
+    <div className='flex justify-center items-center w-screen h-screen bg-[#1E1E1E]'>
+
 
       <div
-        className="relative w-[450px] border-white border-8 !box-content rounded-[2px] h-[calc(100%-16px)] bg-white overflow-hidden"
+        className="relative w-[450px] border-white border-8 !box-content rounded-[2px] h-screen bg-white overflow-hidden"
         style={{ boxShadow: 'inset 6px 6px 0px rgba(0, 0, 0, 0.4)' }}
       >
 
         <div className="absolute left-0 bottom-0 graph w-full h-full moving-background" />
+
+        {/* <Intro /> */}
 
         <Droppable />
 
@@ -312,6 +321,7 @@ function App() {
         {/* <Bindings /> */}
         {/* <YouLose /> */}
         {/* </Modal> */}
+
 
       </div>
     </div>
