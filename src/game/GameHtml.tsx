@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { usePreventBrowserDefaults } from "../hooks/usePreventBrowserDefaults";
-import { AnyEntity } from "../ecs/components";
 import Droppable from "../components/Droppable";
 import Hero from "../components/Hero";
 import Bullet from "../components/Bullet";
@@ -17,10 +16,10 @@ import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition
 
 const GameHtml = () => {
     usePreventBrowserDefaults();
-    const entitiesRef = useRef<Entity[]>([]);
-    const { state, setState } = useGameState();
-    const [_, setRender] = useState(performance.now());
     const boardRef = useRef<HTMLDivElement>(null);
+    const entitiesRef = useRef<Entity[]>([]);
+    const [_, setRender] = useState(performance.now());
+    const { state, setState } = useGameState();
 
     useEffect(() => {
         let request: any;
@@ -71,8 +70,6 @@ const GameHtml = () => {
             clearInterval(interval);
         };
     }, []);
-
-    // console.log(entitiesRef.current[0]?.position?.y);
 
     return (
         <div
