@@ -8,8 +8,13 @@ import { PiMoneyThin } from 'react-icons/pi'
 
 type Tab = 'drops' | 'convert'
 
+interface Props {
+    onCancel?(): void
+}
 
-const Vault = () => {
+
+
+const Vault = ({ onCancel }: Props) => {
     const [currentTab, setCurrentTab] = useState<Tab>('drops');
 
     const getClassNames = (isTrue: boolean) => {
@@ -28,7 +33,7 @@ const Vault = () => {
                 filter: 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))'
             }}
         >
-            <div 
+            <div
                 className='absolute z-[-1] w-full h-full border-2 rounded-lg'
             />
 
@@ -46,7 +51,10 @@ const Vault = () => {
                 >
                     Convert
                 </button>
-                <button className='absolute h-full inline-flex items-center justify-center right-1 text-2xl text-black cursor-pointer' >
+                <button
+                    className='absolute h-full inline-flex items-center justify-center right-1 text-2xl text-black cursor-pointer'
+                    onClick={onCancel}
+                >
                     <BiX />
                 </button>
             </div>

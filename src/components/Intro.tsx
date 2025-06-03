@@ -1,9 +1,16 @@
 import React from 'react'
 import Hero from './Hero'
 
-const Intro = () => {
+interface Props {
+    onClickPlay?(): void
+}
+
+const Intro = ({ onClickPlay }: Props) => {
     return (
-        <div className='absolute top-0 left-0 w-full h-full flex justify-center items-center' >
+        <div className='absolute top-0 left-0 w-full h-full flex justify-center items-center bg-white' >
+            <div
+                className='absolute w-full h-full graph moving-background'
+            />
 
             <div className='absolute flex flex-col items-center'>
 
@@ -25,6 +32,7 @@ const Intro = () => {
                 <button
                     className='border-2 bg-white !px-2 text-[16px] rounded-full cursor-pointer'
                     style={{ filter: 'drop-shadow(3px 3px 0px rgba(0,0,0,0.4))' }}
+                    onClick={onClickPlay}
                 >START</button>
 
             </div>

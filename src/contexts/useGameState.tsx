@@ -4,6 +4,9 @@ export enum GameState {
   Home,
   Playing,
   Paused,
+  ShowVault,
+  ShowBindings,
+  Restart,
   GameOver,
 }
 
@@ -13,7 +16,7 @@ const GameStateContext = createContext<{
 } | null>(null);
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<GameState>(GameState.Home);
+  const [state, setState] = useState<GameState>(GameState.Playing);
 
   return (
     <GameStateContext.Provider value={{ state, setState }}>

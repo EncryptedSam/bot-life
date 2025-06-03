@@ -1,52 +1,48 @@
-export type EntityID = number;
+// type Type = "hero" | "bullet" | "status" | "keys" | "";
+type Type = "background";
 
-export interface Position {
-  x: number;
-  y: number;
+type Range<N extends number, Result extends number[] = []> =
+  Result['length'] extends N ? Result[number] : Range<N, [Result['length'], ...Result]>;
+
+
+
+interface Entity {
+  type: Type;
+  position?: { x: number; y: number };
+  velocity?: { x: number; y: number };
+  direction?: { x: number; y: number };
+  removed?: boolean;
+  removedIds: number[];
 }
 
-export interface Velocity {
-  dx: number;
-  dy: number;
+interface Entity {
+  type: "hero" | "bullet" | "status";
+  position: {
+    x: number;
+    y: number;
+  };
+  velocity?: {
+    dx: number;
+    dy: number;
+  };
+  isRemoved: boolean;
 }
 
-export interface Oscillator {
-  pointA: Position;
-  pointB: Position;
-  speed: number;
-  direction: 1 | -1;
+export interface Hero extends Entity {
+  type: "hero";
+  state: "idle" | "firing";
+  radius: number;
+  flying: boolean;
 }
 
-export type EntityDirection = "left" | "right";
-
-export type EntityState =
-  | "idle"
-  | "run"
-  | "jump"
-  | "double-jump"
-  | "fall"
-  | "wall-jump"
-  | "hit"
-  | "collected";
-
-export interface Sprite {
-  images: Record<string, HTMLImageElement>; // e.g. "idle-right", "run-left", etc.
-  frameWidth: number;
-  frameHeight: number;
-  currentFrame: number;
-  totalFrames: Record<string, number>; // frames per animation key
-  currentAnimation: string; // current key used for animation
-  frameTime: number; // ms per frame
-  elapsedTime: number; // ms since last frame update
+export interface Bullet extends Entity {
+  type: "bullet";
+  isHit: boolean;
 }
 
-export interface Entity {
-  id: EntityID;
-  position: Position;
-  velocity?: Velocity;
-  sprite: Sprite;
-  direction?: EntityDirection;
-  state?: EntityState;
-  type?: string; // e.g. "hero", "fruit", "brick", "enemy"
-  oscillator?: Oscillator; 
+export interface Status extends Entity {
+  type: "status";
+  lastBullet: number | null;
 }
+
+export type AnyEntity = Hero | Bullet | Status;

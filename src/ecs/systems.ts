@@ -1,106 +1,101 @@
-import { Entity } from "./components";
+import { isMax } from "../utils/isMax";
+import { AnyEntity } from "./components";
+import { createBullet, createHero, createStatus } from "./entities";
 
-export function updatePosition(entities: Entity[], delta: number) {
-  entities.forEach((e) => {
-    if (e.velocity) {
-      e.position.x += e.velocity.dx * delta;
-      e.position.y += e.velocity.dy * delta;
-    }
-  });
+export function initGame(entitiesRef: React.RefObject<AnyEntity[]>) {
+  if (entitiesRef.current.length > 0) return;
+  const entities = entitiesRef.current;
+
+  entities.push(createHero());
+  entities.push(createStatus());
 }
 
-export function updateOscillators(entities: Entity[], delta: number): void {
-  for (const entity of entities) {
-    const osc = entity.oscillator;
-    if (!osc) continue;
-
-    const { pointA, pointB, speed } = osc;
-    const pos = entity.position;
-
-    // Determine target
-    const target = osc.direction === 1 ? pointB : pointA;
-
-    // Calculate direction vector
-    const dx = target.x - pos.x;
-    const dy = target.y - pos.y;
-    const distance = Math.hypot(dx, dy);
-
-    if (distance < 1) {
-      osc.direction *= -1; // reverse direction
-      continue;
-    }
-
-    // Normalize and move
-    const vx = (dx / distance) * speed * (delta / 1000);
-    const vy = (dy / distance) * speed * (delta / 1000);
-
-    pos.x += vx;
-    pos.y += vy;
-  }
+export function resetGame(entitiesRef: React.RefObject<AnyEntity[]>) {
+  if (entitiesRef.current == null) return;
+  entitiesRef.current = [];
+  initGame(entitiesRef);
 }
 
-export function updateAnimation(entities: Entity[], delta: number): void {
-  for (const entity of entities) {
-    const sprite = entity.sprite;
-    const state = entity.state || "idle";
+export function updatePosition(
+  entitiesRef: React.RefObject<AnyEntity[]>,
+  delta: number
+) {
+  if (entitiesRef.current == null) return;
+  const entities = entitiesRef.current;
 
-    if (!sprite || !sprite.images[state] || !sprite.totalFrames[state])
-      continue;
-
-    sprite.currentAnimation = state;
-    sprite.elapsedTime += delta;
-
-    if (sprite.elapsedTime >= sprite.frameTime) {
-      sprite.elapsedTime = 0;
-
-      if (state === "collected") {
-        if (sprite.currentFrame < sprite.totalFrames[state] - 1) {
-          sprite.currentFrame++;
-        } else {
-          entity.type = "remove";
-        }
-      } else {
-        // loop normal animations
-        sprite.currentFrame =
-          (sprite.currentFrame + 1) % sprite.totalFrames[state];
-      }
-    }
-  }
-}
-
-// Helper function to render an entity's sprite (this would be adapted to your rendering framework, like canvas)
-export function render(
-  entities: Entity[],
-  ctx: CanvasRenderingContext2D
-): void {
   entities.forEach((entity) => {
-    const { x, y } = entity.position;
-    const sprite = entity.sprite;
 
-    if (!sprite) return;
+    
+    entity.position.x += entity.velocity.dx * delta;
+    entity.position.y += entity.velocity.dy * delta;
 
-    const currentState = entity.sprite.currentAnimation || "idle";
+    if (entity.type == "bullet" && entity.position.y < 0) {
+      entity.isRemoved = true;
+    }
+  });
+}
 
-    const image = sprite.images[currentState];
-    if (!image) return;
+export function processKeysInput(
+  entitiesRef: React.RefObject<AnyEntity[]>,
+  keys: string[]
+) {
+  if (entitiesRef.current.length == 0) return;
+  const entities = entitiesRef.current;
+  const hero = entities.find((entity) => entity.type === "hero");
+  if (!hero) return;
 
-    const frameX = sprite.currentFrame * sprite.frameWidth;
-    const frameY = 0;
-    const width = sprite.frameWidth;
-    const height = sprite.frameHeight;
+  hero.state = "idle";
+  if (keys.includes(" ")) {
+    const status = entities.find((entity) => entity.type === "status");
+    if (!status) return;
+    let shoot = true;
 
-    ctx.save(); // Save canvas state
-
-    if (entity.direction === "left") {
-      // Flip horizontally around the vertical axis
-      ctx.translate(x + width, y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(image, frameX, frameY, width, height, 0, 0, width, height);
-    } else {
-      ctx.translate(x, y);
-      ctx.drawImage(image, frameX, frameY, width, height, 0, 0, width, height);
+    if (typeof status.lastBullet == "number") {
+      shoot = (performance.now() - status.lastBullet) / 200 > 1;
     }
 
-    ctx.restore(); // Restore canvas state
-  });
+    if (shoot) {
+      const bullet = createBullet({
+        x: hero.position.x,
+        y: hero.position.y - 30,
+      });
+      entities.push(bullet);
+      status.lastBullet = performance.now();
+    }
+
+    hero.state = "firing";
+  }
+
+  if (hero && hero.velocity) {
+    hero.velocity.dx = 0;
+    hero.velocity.dy = 0;
+
+    if (isMax(keys, ["ArrowRight", "ArrowLeft"], "ArrowLeft")) {
+      hero.velocity.dx = -100;
+    }
+
+    if (isMax(keys, ["ArrowRight", "ArrowLeft"], "ArrowRight")) {
+      hero.velocity.dx = 100;
+    }
+
+    if (isMax(keys, ["ArrowUp", "ArrowDown"], "ArrowUp")) {
+      hero.velocity.dy = -100;
+    }
+
+    if (isMax(keys, ["ArrowUp", "ArrowDown"], "ArrowDown")) {
+      hero.velocity.dy = 100;
+    }
+  }
+}
+
+export function cleanupRemovedEntities(
+  entitiesRef: React.RefObject<AnyEntity[]>
+): void {
+  if (entitiesRef.current.length == 0) return;
+  const entities = entitiesRef.current;
+  for (let i = entities.length - 1; i >= 0; i--) {
+    if (entities[i].isRemoved) {
+      entities.splice(i, 1);
+    }
+  }
 }

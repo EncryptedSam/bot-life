@@ -2,7 +2,15 @@ import React from 'react'
 import ProgressBar from './ProgressBar'
 import Button from './Button'
 
-const ScoreBoard = () => {
+interface Props {
+
+    onClickPlay?(): void
+    onClickVault?(): void
+    onClickPad?(): void
+}
+
+
+const ScoreBoard = ({ onClickPlay, onClickVault, onClickPad }: Props) => {
     return (
         <div
             className='absolute top-0 right-0 w-full z-10'
@@ -35,13 +43,23 @@ const ScoreBoard = () => {
                 y={60}
                 align='right'
                 value='vault'
+                onClick={onClickVault}
             />
 
             <Button
                 x={10}
                 y={110}
                 align='right'
+                value='keypad'
+                onClick={onClickPad}
+            />
+
+            <Button
+                x={10}
+                y={240}
+                align='right'
                 value='play'
+                onClick={onClickPlay}
             />
 
         </div>

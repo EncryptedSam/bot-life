@@ -2,7 +2,13 @@ import React from 'react'
 import { BiHome, BiRefresh } from 'react-icons/bi'
 import { BsPlay } from 'react-icons/bs'
 
-const PauseCard = () => {
+interface Props {
+    onClickPlay?(): void
+    onClickHome?(): void
+    onClickRestart?(): void
+}
+
+const PauseCard = ({ onClickHome, onClickPlay, onClickRestart }: Props) => {
     return (
         <div
             className='absolute w-[180px] h-[80px] border-2 rounded-full bg-white inline-flex justify-center items-center'
@@ -15,16 +21,19 @@ const PauseCard = () => {
             <div className='absolute h-0 bottom-[0px] !space-x-3 w-full flex justify-center items-center' >
                 <button
                     className='bg-white w-[35px] h-[35px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    onClick={onClickRestart}
                 >
                     <BiRefresh size={20} />
                 </button>
                 <button
                     className='bg-white w-[40px] h-[40px] rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    onClick={onClickPlay}
                 >
                     <BsPlay className='!ml-1' size={30} />
                 </button>
                 <button
                     className='bg-white w-[35px] h-[35px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    onClick={onClickHome}
                 >
                     <BiHome size={20} />
                 </button>
