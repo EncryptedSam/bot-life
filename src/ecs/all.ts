@@ -72,13 +72,16 @@ function getRandomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getXposList(
+function getCoordList(
   width: number,
   radius: number,
   cols: number,
-  px: number
-): number[] {
-  let res: number[] = [];
+  yRange: { from: number; to: number },
+  px?: number
+): { x: number; y: number }[] {
+  px = px ?? radius;
+
+  let res: { x: number; y: number }[] = [];
   let w: number = width - (2 * px + 2 * radius * (cols - 1));
 
   let seg: number = w / cols;
@@ -87,11 +90,42 @@ function getXposList(
   let dia: number = 2 * radius;
 
   for (let i = 0; i < cols; i++) {
-    res.push(getRandomInRange(a, a + seg));
+    let x = getRandomInRange(a, a + seg);
+    let y = getRandomInRange(yRange.from, yRange.to);
+    res.push({ x, y });
     a = a + seg + dia;
   }
 
   return res;
+}
+
+type Categories = Record<string, string>;
+type Items = Record<string, number>;
+
+function pickRandomItems(
+  categories: Categories,
+  items: Items
+): Record<string, number> {
+  const grouped: Record<string, { name: string; value: number }[]> = {};
+
+  for (const [item, type] of Object.entries(categories)) {
+    const value = items[item] ?? 0;
+    if (!grouped[type]) grouped[type] = [];
+    grouped[type].push({ name: item, value });
+  }
+
+  const result: Record<string, number> = {};
+
+  for (const itemList of Object.values(grouped)) {
+    const validItems = itemList.filter((i) => i.value > 0);
+    if (validItems.length === 0) continue;
+
+    const randomItem =
+      validItems[Math.floor(Math.random() * validItems.length)];
+    result[randomItem.name] = randomItem.value;
+  }
+
+  return result;
 }
 
 // =================================================================================================== component
@@ -123,11 +157,15 @@ const itemToCategoryMap: Record<Item, Category> = {
   water: "resource",
   drinks: "resource",
   bullets: "resource",
+
   bathroom: "utility",
   sleep: "utility",
+
   "paid work": "activity",
   work: "activity",
+
   "medi kit": "medical",
+
   chat: "entertainment",
   music: "entertainment",
   alcohol: "entertainment",
@@ -195,7 +233,7 @@ function createBackground(entities: Entity[]) {
   let background: Entity = {
     type: "background",
     position: { x: 0, y: 0 },
-    velocity: { dx: 0.5, dy: 0.5 },
+    velocity: { dx: 0.6, dy: 0.6 },
     motionLoop: {
       type: "linear",
       start: {
@@ -222,6 +260,7 @@ function createDrop(entities: Entity[], item: Item, x: number, y: number) {
     position: { x, y },
     velocity: { dx: 0, dy: 18 },
     direction: { x: 0, y: 1 },
+    radius: 19,
     status: "move",
     deadEffect: {
       zIndex: 1,
@@ -262,7 +301,7 @@ function createPlayer(entities: Entity[], x: number, y: number) {
 
   const player: Entity = {
     type: "player",
-    radius: 19,
+    radius: 20,
     position: { x, y },
     velocity: { dx: 100, dy: 100 },
     direction: { x: 0, y: 0 },
@@ -285,6 +324,7 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
     stress: 0,
     money: 1000,
     bullets: 1000,
+    lastDeploy: undefined,
     lastFire: undefined,
     dropsLife: {
       food: 1000,
@@ -346,8 +386,45 @@ export function clearRemoved(entities: Entity[]) {
   removeRemovedStatusInPlace(entities);
 }
 
-export function deployDrops(entities: Entity[], delta: number) {
-  // [ ] getXposList(width, radius, cols, px);
+export function deployDrops(entities: Entity[]) {
+  let gameBoard = entities[1];
+  if (!gameBoard) return;
+  if (!(gameBoard.type == "gameboard")) return;
+  if (!gameBoard.dropsLife) return;
+  if (!(typeof gameBoard.width == "number")) return;
+  if (!gameBoard.initialized) return;
+
+  let player = entities[2];
+  if (!(typeof player.radius == "number")) return;
+
+  let allowDeploy = true;
+  if (typeof gameBoard.lastDeploy == "number") {
+    allowDeploy =
+      (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
+      // (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
+  }
+
+  if (allowDeploy) {
+    const drops = pickRandomItems(itemToCategoryMap, gameBoard.dropsLife);
+    const coords = getCoordList(
+      gameBoard.width,
+      // player.radius,
+      25,
+      Object.keys(drops).length,
+      {
+        from: -player.radius,
+        to: -30,
+      },
+      40
+    );
+    let i = 0;
+    for (let key in drops) {
+      createDrop(entities, key as Item, coords[i].x, coords[i].y);
+      i++;
+    }
+    gameBoard.lastDeploy = performance.now();
+    // gameBoard.lastDeploy = -30;
+  }
 }
 
 export function updatePosition(entities: Entity[], delta: number) {
@@ -355,6 +432,7 @@ export function updatePosition(entities: Entity[], delta: number) {
   if (!gameBoard) return;
   if (!(gameBoard.type == "gameboard")) return;
   if (!gameBoard.initTime) return;
+  if (!(typeof gameBoard.height == "number")) return;
   if (!gameBoard.initialized) return;
 
   entities.forEach((entity) => {
@@ -394,18 +472,24 @@ export function updatePosition(entities: Entity[], delta: number) {
           entity.position.y = height - 2 * entity.radius;
         }
       }
+      if (
+        entity.type === "drop" &&
+        typeof entity.radius == "number" &&
+        gameBoard.height
+      ) {
+        if (entity.position.y > gameBoard.height + entity.radius) {
+          entity.status = "expired";
+        }
+      }
     }
 
     if (entity.position && entity.velocity && entity.motionLoop) {
       let { position, motionLoop, velocity } = entity;
       let { start, end } = motionLoop;
 
-      entity.position.x =
-        (((position.x + velocity.dx) % end.x) + start.x) * 1;
+      entity.position.x = (((position.x + velocity.dx) % end.x) + start.x) * 1;
 
-      entity.position.y =
-        (((position.y + velocity.dy) % end.y) + start.y) * 1;
-
+      entity.position.y = (((position.y + velocity.dy) % end.y) + start.y) * 1;
     }
   });
 }
@@ -466,7 +550,7 @@ export function resolveInputKeys(entities: Entity[], keys: string[]) {
     }
 
     if (fire) {
-      createBullet(entities, player.position.x, player.position.y);
+      createBullet(entities, player.position.x, player.position.y - 18);
       gameBoard.bullets--;
       gameBoard.lastFire = performance.now();
     }

@@ -18,7 +18,7 @@ const Hero = ({ x, y, flying, firing, scale }: Props) => {
                 left: x,
                 top: y,
                 scale: flying ? 1.2 : 1,
-                filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : 'drop-shadow(4px 4px 0px rgba(0,0,0,0.4))',
+                filter: flying ? 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))' : undefined,
             }}
         >
 

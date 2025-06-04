@@ -11,8 +11,7 @@ import PauseCard from "../components/PauseCard";
 import Vault from "../components/Vault";
 import Intro from "../components/Intro";
 import Bindings from "../components/Bindings";
-import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved } from "../ecs/all";
-
+import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops } from "../ecs/all";
 
 const GameHtml = () => {
     usePreventBrowserDefaults();
@@ -20,6 +19,7 @@ const GameHtml = () => {
     const entitiesRef = useRef<Entity[]>([]);
     const [_, setRender] = useState(performance.now());
     const { state, setState } = useGameState();
+
 
     useEffect(() => {
         let request: any;
@@ -35,6 +35,7 @@ const GameHtml = () => {
             initGame(entities, board)
             updateInitAnimation(entities, delta / 1000)
             clearRemoved(entities);
+            deployDrops(entities);
             updatePosition(entities, delta / 1000)
 
             setRender(performance.now());
@@ -84,20 +85,22 @@ const GameHtml = () => {
                 <div
                     className="absolute left-0 top-0 graph w-full h-full"
                     style={{
-                        backgroundPositionY: entitiesRef.current[0]?.position?.y,
-                        backgroundPositionX: entitiesRef.current[0]?.position?.x
+                        backgroundPositionY: entitiesRef.current[0]?.position?.y
                     }}
                 />
 
-                <Droppable />
+                {/* <Droppable x={0} y={10} /> */}
 
 
                 {
                     entitiesRef.current.map((entity, idx) => {
                         const entities = [];
 
-
-
+                        if (entity.type == 'drop') {
+                            let { position, } = entity;
+                            if (!position) return;
+                            entities.push(<Droppable key={`entity_${idx}`} x={position.x} y={position.y} />);
+                        }
 
                         if (entity.type == 'player') {
                             let { firing, position, glide } = entity;
@@ -131,7 +134,6 @@ const GameHtml = () => {
                         return entities;
                     })
                 }
-
 
                 <>
                     <ScoreBoard
@@ -188,25 +190,3 @@ export default GameHtml
 
 
 
-
-
-/**
-
-
-[ ] board
-    - entity
-    - component
-    - singleton
-[ ] 
-
-
-
-
-
-[x] start 
-[x] play/pause
-[x] show short cuts
-[ ] you lose
-
-
-*/
