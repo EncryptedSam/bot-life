@@ -32,11 +32,20 @@ const GameHtml = () => {
             const delta = time - lastTime;
             lastTime = time;
 
-            initGame(entities, board)
-            updateInitAnimation(entities, delta / 1000)
-            clearRemoved(entities);
-            deployDrops(entities);
-            updatePosition(entities, delta / 1000)
+            const gameboard = entities[0];
+            let isPlaying = true;
+
+            if (gameboard && gameboard.state) {
+                gameboard.state == 'playing' ? true : false;
+            }
+
+            if (isPlaying) {
+                initGame(entities, board)
+                updateInitAnimation(entities, delta / 1000)
+                clearRemoved(entities);
+                deployDrops(entities);
+                updatePosition(entities, delta / 1000)
+            }
 
             setRender(performance.now());
             request = requestAnimationFrame(gameLoop);
@@ -46,7 +55,7 @@ const GameHtml = () => {
         return () => {
             cancelAnimationFrame(request);
         };
-    }, []);
+    }, [state]);
 
     useEffect(() => {
         const keysSet = new Set<string>();
@@ -72,6 +81,9 @@ const GameHtml = () => {
         };
     }, []);
 
+
+    let entities = entitiesRef.current;
+
     return (
         <div
             className="bg-[#1E1E1E] flex justify-center h-screen"
@@ -90,7 +102,6 @@ const GameHtml = () => {
                 />
 
                 {/* <Droppable x={0} y={10} /> */}
-
 
                 {
                     entitiesRef.current.map((entity, idx) => {
@@ -136,11 +147,26 @@ const GameHtml = () => {
                 }
 
                 <>
-                    <ScoreBoard
-                        onClickPlay={() => { setState(GameState.Paused) }}
-                        onClickVault={() => { setState(GameState.ShowVault) }}
-                        onClickPad={() => { setState(GameState.ShowBindings) }}
-                    />
+                    {
+                        entities[1] &&
+                        entities[1].type == 'gameboard' &&
+                        typeof entities[1].bullets == 'number' &&
+                        typeof entities[1].money == 'number' &&
+                        typeof entities[1].stress == 'number' &&
+                        typeof entities[1].energy == 'number' &&
+                        <ScoreBoard
+                            data={{
+                                bullets: { acquired: entities[1].bullets, segments: 5, total: 1000 },
+                                energy: { acquired: entities[1].energy, segments: 5, total: 1000 },
+                                money: { acquired: entities[1].money, segments: 5, total: 1000 },
+                                stress: { acquired: entities[1].stress, segments: 5, total: 1000 },
+                            }}
+
+                            onClickPlay={() => { setState(GameState.Paused) }}
+                            onClickVault={() => { setState(GameState.ShowVault) }}
+                            onClickPad={() => { setState(GameState.ShowBindings) }}
+                        />
+                    }
 
                     <GamePad />
                     {

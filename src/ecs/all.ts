@@ -174,6 +174,7 @@ const itemToCategoryMap: Record<Item, Category> = {
 
 export interface Entity {
   type: "background" | "player" | "drop" | "bullet" | "gameboard";
+  state?: "home" | "restarted" | "playing" | "paused" | "vaultOpen" | "bindingsOpen";
   height?: number;
   width?: number;
   item?: Item;
@@ -317,6 +318,7 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
 
   const board: Entity = {
     type: "gameboard",
+    state: "home",
     height,
     width,
     deployCount: 0,
@@ -401,7 +403,7 @@ export function deployDrops(entities: Entity[]) {
   if (typeof gameBoard.lastDeploy == "number") {
     allowDeploy =
       (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
-      // (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
+    // (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
   }
 
   if (allowDeploy) {

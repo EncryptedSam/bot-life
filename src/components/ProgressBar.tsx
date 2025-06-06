@@ -2,8 +2,8 @@ import React from 'react'
 import { BsEmojiExpressionless } from 'react-icons/bs'
 import { GiBullets } from 'react-icons/gi'
 import { GoGraph, GoZap } from 'react-icons/go'
-import { ImPower } from 'react-icons/im'
 import { PiMoneyThin } from 'react-icons/pi'
+import { ImPower } from 'react-icons/im'
 
 
 interface Props {
@@ -11,12 +11,16 @@ interface Props {
     y: number
     align?: 'left' | 'right'
     type: 'stress' | 'energy' | 'productivity' | 'money' | 'bullets'
-    value?: { total?: number, sub: number }
+    value: { total: number, acquired: number, segments: number }
 }
 
-const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 } }: Props) => {
+const ProgressBar = ({ x, y, align = 'left', type, value }: Props) => {
 
+    let total = (value.acquired / value.total) * 100;
 
+    let divisor = value.total / value.segments;
+
+    let sub = ((((value.acquired - 1) % divisor) + 1) / divisor) * 100;
 
     const getBarsStyle = (element?: 'wrapper' | 'total' | 'sub' | 'total-align' | 'sub-align') => {
 
@@ -66,8 +70,6 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
 
     }
 
-
-
     const iconHolder = (
         <div className='relative inline-flex justify-center items-center border-2 z-[1] border-black w-[36px] h-[36px] rounded-full bg-white' >
             {type == 'productivity' && <GoGraph size={20} />}
@@ -77,7 +79,6 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
             {type == 'bullets' && <GiBullets size={20} className='scale-[-1]' />}
         </div>
     )
-
 
     return (
         <div
@@ -95,23 +96,21 @@ const ProgressBar = ({ x, y, align = 'left', type, value = { sub: 80, total: 29 
                 {
                     value && <>
                         {
-                            value.total &&
                             <div
                                 className={`border-2 absolute overflow-hidden text-white bg-white border-black w-[40px] h-[8px] ${getBarsStyle('total')}`}
                             >
                                 <div
                                     className={`absolute h-full bg-gray-500 ${getBarsStyle('total-align')}`}
-                                    style={{ width: `${value.total}%` }}
+                                    style={{ width: `${total}%` }}
                                 />
                             </div>
                         }
 
                         {
-                            value.sub &&
                             <div className='border-2 relative overflow-hidden border-black w-[90px] h-[14px] rounded-full bg-white' >
                                 <div
                                     className={`absolute h-full bg-gray-400 ${getBarsStyle('sub-align')}`}
-                                    style={{ width: `${value.sub}%` }}
+                                    style={{ width: `${sub}%` }}
                                 />
                             </div>
                         }
