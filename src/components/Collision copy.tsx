@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import { detectCollision } from '../utils/detectCollision'
+import { detectFirstHit } from '../utils/detectFirstHit'
+import { detectFirstCollision } from '../utils/detectFirstCollision'
+import { detectDualAxisHits } from '../utils/detectDualAxisHits'
+import { sweptAABBvsCircle } from '../utils/sweptAABBvsCircle'
 import Circle from './Hero'
-import { angleBetweenPoints, circleCircleIntersect, detectRectCircleCollision, getCircleDiameterEndpoints } from '../utils/isCircleIntersectingOrBetween'
+import { isCircleInPath } from '../utils/isCircleInPath'
 
 
 interface Point {
@@ -30,36 +35,31 @@ interface Circle {
 
 const Collision = () => {
     const [heroBox, setHeroBox] = useState<HeroBox>({ height: 100, width: 100 });
+
+    const [circles, setCircles] = useState<Circle[]>([{ x: 100, y: 100, radius: 50 }]);
+
     const [linePoints, setLinePoints] = useState<Point[]>([
         { x: 10, y: 10 },
         { x: 400, y: 400 }
     ]);
+
     const [pointC, setPointC] = useState<Point | null>(null);
+
     const [bricks, setBricks] = useState<Brick[]>([
         // { x: 100, y: 100, width: 25, height: 25 },
         { x: 100, y: 200, width: 100, height: 100 },
         // { x: 100, y: 200, width: 100, height: 100 },
     ]);
-    const [circles, setCircles] = useState<Circle[]>([
-        { x: 50, y: 50, radius: 50 },
-        { x: 200, y: 200, radius: 50 },
-    ]);
-
-
-    const [points, setPoints] = useState<Point[]>([]);
-
 
     const [brickId, setBrickId] = useState<null | number>(null);
     const [pointId, setPointId] = useState<null | number>(null);
     const [circleId, setCircleId] = useState<null | number>(null);
 
-    console.log(circleId);
 
     useEffect(() => {
         let pointPrevState: Point | null = pointId != null ? linePoints[pointId] : null;
         let brickPrevState: Brick | null = brickId != null ? bricks[brickId] : null;
         let circlePrevState: Circle | null = circleId != null ? circles[circleId] : null;
-
 
         let x: number = 0;
         let y: number = 0;
@@ -120,50 +120,227 @@ const Collision = () => {
 
         console.clear();
 
+        function signedDistanceToLine(
+            x1: number, y1: number,
+            x2: number, y2: number,
+            cx: number, cy: number
+        ): number {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            return ((dx) * (y1 - cy) - (x1 - cx) * (dy)) / Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function isCircleBetweenTwoLines(
+            A1: [number, number], B1: [number, number],
+            A2: [number, number], B2: [number, number],
+            center: [number, number], radius: number
+        ): boolean {
+            const d1 = signedDistanceToLine(A1[0], A1[1], B1[0], B1[1], center[0], center[1]);
+            const d2 = signedDistanceToLine(A2[0], A2[1], B2[0], B2[1], center[0], center[1]);
+
+            const oppositeSides = d1 * d2 < 0;
+            const clearFromLines = Math.abs(d1) >= radius && Math.abs(d2) >= radius;
+
+            return oppositeSides && clearFromLines;
+        }
+
+
         let x1 = linePoints[0].x;
         let y1 = linePoints[0].y;
 
         let x2 = linePoints[1].x;
         let y2 = linePoints[1].y;
 
-        let playerWidth = heroBox.width;
-        let playerHeight = heroBox.height;
-
+        let hw = heroBox.width;
+        let hh = heroBox.height;
 
         let cx = circles[0].x;
         let cy = circles[0].y;
         let r = circles[0].radius;
 
-        // let res = detectDualAxisHits({ x: x1, y: y1 }, { x: x2, y: y2 }, hw, hh, bricks[0]);
+        {
+            let A1: [number, number] = [x1 + hw, y1]
+            let B1: [number, number] = [x2 + hw, y2]
 
-        // let res = sweptAABBvsCircle({ height: hh, width: hw, pointA: { x: x1, y: y1 }, pointB: { x: x2, y: y2 } }, { center: { x: cx, y: cy }, radius: r })
+            let A2: [number, number] = [x1, y1 + hh]
+            let B2: [number, number] = [x2, y2 + hh]
 
-        // console.log(res);
-
-        // isCircleIntersectingOrBetween()
-
-        // let res = detectRectCircleCollision({ a: { x: x1, y: y1 }, b: { x: x2, y: y2 }, width: playerWidth, height: playerHeight }, { center: { x: cx, y: cy }, radius: r });
-
-        let circle1 = {center: {x:circles[0].x,y:circles[0].y}, radius:circles[0].radius };
-        let circle2 = {center: {x:circles[1].x,y:circles[1].y}, radius:circles[1].radius };
-
-        let res1 = circleCircleIntersect(circle1, circle2)
-
-        console.log(res1);
-
-        // console.log({ center:{x: cx, y: cy}, radius: r });
-        let deg = angleBetweenPoints({x:circles[0].x,y:circles[0].y}, {x:circles[1].x,y:circles[1].y})
-
-        let point1 = getCircleDiameterEndpoints(circle1, deg+90);
-        let point2 = getCircleDiameterEndpoints(circle2, deg+90);
+            let center: [number, number] = [cx, cy]
+            let radius = r;
 
 
-        setPoints([...point1, ...point2]);
+            let res = isCircleBetweenTwoLines(A1, B1, A2, B2, center, radius);
+            // console.log(res);
+        }
+
+        {
+            type Point = { x: number; y: number };
+
+            type Result = {
+                contacts: boolean;
+                position: "above" | "below" | "on";
+            };
+
+            function analyzeCircleLineContact(
+                linePoint1: Point,
+                linePoint2: Point,
+                circleCenter: Point,
+                r: number
+            ): Result {
+                const { x: x1, y: y1 } = linePoint1;
+                const { x: x2, y: y2 } = linePoint2;
+                const { x: cx, y: cy } = circleCenter;
+
+                // Line: Ax + By + C = 0
+                const A = y2 - y1;
+                const B = x1 - x2;
+                const C = x2 * y1 - x1 * y2;
+
+                // Distance from center to line
+                const distance = Math.abs(A * cx + B * cy + C) / Math.sqrt(A * A + B * B);
+
+                // Check if the circle contacts the line
+                const contacts = distance <= r;
+
+                // Determine if the circle is above, below, or on the line
+                const lineYAtCX = ((x2 - x1) === 0)
+                    ? Infinity // Vertical line
+                    : y1 + ((y2 - y1) / (x2 - x1)) * (cx - x1);
+
+                let position: Result["position"];
+                if (Math.abs(cy - lineYAtCX) < 1e-8) {
+                    position = "on";
+                } else {
+                    position = cy < lineYAtCX ? "above" : "below";
+                }
+
+                return { contacts, position };
+            }
+
+            let p1 = { x: x1 + hw, y: y1 }
+            let p2 = { x: x2 + hw, y: y2 }
+            let pc = { x: cx, y: cy }
+
+
+
+
+
+            // const result = analyzeCircleLineContact(p1, p2, pc, r);
+
+            // console.log(result);
+
+        }
+
+        type Point = { x: number; y: number };
+
+
+
+        function isCircleIntersectingPolygon(
+            polygon: Point[],
+            circleCenter: Point,
+            radius: number
+        ): boolean {
+            // Step 1: Check if circle intersects any polygon edge
+            for (let i = 0; i < polygon.length; i++) {
+                const a = polygon[i];
+                const b = polygon[(i + 1) % polygon.length];
+                if (doesCircleIntersectLineSegment(circleCenter, radius, a, b)) {
+                    return true;
+                }
+            }
+
+            // Step 2: Check if circle center is inside polygon
+            if (isPointInPolygon(circleCenter, polygon)) {
+                return true;
+            }
+
+            // (Optional) Step 3: Check if polygon is fully inside the circle
+            // If needed: check if all vertices are within the circle
+
+            return false;
+        }
+
+        // Check if a point is inside polygon using ray casting
+        function isPointInPolygon(point: Point, polygon: Point[]): boolean {
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].x,
+                    yi = polygon[i].y;
+                const xj = polygon[j].x,
+                    yj = polygon[j].y;
+
+                const intersect =
+                    yi > point.y !== yj > point.y &&
+                    point.x <
+                    ((xj - xi) * (point.y - yi)) / (yj - yi + Number.EPSILON) + xi;
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        // Check if circle intersects with a line segment
+        function doesCircleIntersectLineSegment(
+            circle: Point,
+            radius: number,
+            p1: Point,
+            p2: Point
+        ): boolean {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const l2 = dx * dx + dy * dy;
+
+            // Project center onto line segment, clamp between 0 and 1
+            const t = Math.max(
+                0,
+                Math.min(
+                    1,
+                    ((circle.x - p1.x) * dx + (circle.y - p1.y) * dy) / (l2 || 1)
+                )
+            );
+            const nearestX = p1.x + t * dx;
+            const nearestY = p1.y + t * dy;
+
+            const distX = circle.x - nearestX;
+            const distY = circle.y - nearestY;
+
+            return distX * distX + distY * distY <= radius * radius;
+        }
+        {
+
+            let x1 = linePoints[0].x;
+            let y1 = linePoints[0].y;
+
+            let x2 = linePoints[1].x;
+            let y2 = linePoints[1].y;
+
+            let hw = heroBox.width;
+            let hh = heroBox.height;
+
+            let cx = circles[0].x;
+            let cy = circles[0].y;
+            let r = circles[0].radius;
+
+
+            let res = isCircleIntersectingPolygon(
+                [
+                    { x: x1, y: y1 },
+                    { x: x1 + hw, y: y1 },
+                    { x: x2 + hw, y: y2 },
+                    { x: x2 + hw, y: y2 + hh },
+                    { x: x2, y: y2 + hh },
+                    { x: x1, y: y1 + hh },
+                ],
+                { x: cx, y: cy },
+                r
+            );
+            // console.log(res);
+        }
+
+
 
 
     }, [linePoints, heroBox, bricks, circles])
 
-    console.log(points);
 
 
     return (
@@ -210,73 +387,9 @@ const Collision = () => {
                         strokeWidth={1}
                         strokeDasharray={`${2},${2}`}
                     />
-                    {/* 0----------------------------------------------------- */}
-                    {
-                        points.length === 4 &&
-                        <>
-                            <line
-                                x1={points[0].x}
-                                y1={points[0].y}
-                                x2={points[1].x}
-                                y2={points[1].y}
-                                stroke={'red'}
-                                strokeWidth={1}
-                                strokeDasharray={`${2},${2}`}
-                            />
-                            <line
-                                x1={points[1].x}
-                                y1={points[1].y}
-                                x2={points[3].x}
-                                y2={points[3].y}
-                                stroke={'red'}
-                                strokeWidth={1}
-                                strokeDasharray={`${2},${2}`}
-                            />
-                            <line
-                                x1={points[3].x}
-                                y1={points[3].y}
-                                x2={points[2].x}
-                                y2={points[2].y}
-                                stroke={'red'}
-                                strokeWidth={1}
-                                strokeDasharray={`${2},${2}`}
-                            />
-                            <line
-                                x1={points[2].x}
-                                y1={points[2].y}
-                                x2={points[0].x}
-                                y2={points[0].y}
-                                stroke={'red'}
-                                strokeWidth={1}
-                                strokeDasharray={`${2},${2}`}
-                            />
-                        </>
-                    }
-
-
                 </svg>
 
                 {
-                    points.map((point, idx) => {
-                        return (
-                            <div
-                                key={`point_${idx}`}
-                                className='absolute h-0 w-0 inline-flex justify-center items-center'
-                                style={{
-                                    top: point.y,
-                                    left: point.x
-                                }}
-                            >
-                                <div
-                                    className='border border-red-50 w-[10px] h-[10px] shrink-0'
-                                />
-                            </div>
-                        )
-                    })
-                }
-
-                {
-                /* {
                     bricks.map(({ height, width, x, y }, idx) => {
                         return (
                             <div
@@ -289,7 +402,6 @@ const Collision = () => {
                             </div>
                         )
                     })
-                } */
                 }
                 {
                     linePoints.map(({ x, y }, idx) => {
@@ -336,25 +448,21 @@ const Collision = () => {
                     </>
                 }
 
-                {
-                    circles.map(({ radius, x, y }, idx) => {
-                        return (
-                            <div
-                                key={`circle_${idx}`}
-                                id='blue-dot'
-                                className='absolute cursor-pointer w-[0] h-[0] inline-flex justify-center items-center'
-                                style={{ left: x, top: y }}
-                            >
-                                <div
-                                    className='w-[8px] h-[8px] bg-blue-600 rounded-full shrink-0'
-                                    style={{ width: radius * 2, height: radius * 2 }}
-                                    onMouseDown={() => { setCircleId(idx) }}
-                                />
-                            </div>
-                        )
-                    })
-                }
+                {/* <Circle
+                x={circles[0].x}
+                y={circles[0].y}
+                radius={circles[0].radius}
+                onMouseDown={() => { setCircleId(0) }}
+            /> */}
 
+
+                {/* <div
+                id='blue-dot'
+                className='absolute cursor-pointer w-[0px] h-[0] inline-flex justify-center items-center pointer-events-none'
+                style={{ left: 0, top: 0 }}
+            >
+                <div className='w-[8px] h-[8px] bg-blue-600 rounded-full shrink-0' />
+            </div> */}
             </div>
         </div>
     )
@@ -363,22 +471,19 @@ const Collision = () => {
 export default Collision
 
 /**
-    <svg
-        className='absolute'
-        style={{ position: "absolute",  pointerEvents: "none" }}
-    >
-        <line
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={color}
-            strokeWidth={dotSize}
-            strokeDasharray={`${dotSize},${dotSpacing}`}
-        />
-    </svg>
-
-
-
+            <svg
+                className='absolute'
+                style={{ position: "absolute",  pointerEvents: "none" }}
+            >
+                <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={color}
+                    strokeWidth={dotSize}
+                    strokeDasharray={`${dotSize},${dotSpacing}`}
+                />
+            </svg>
 
  */

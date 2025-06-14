@@ -5,7 +5,6 @@ import Hero from "../components/Hero";
 import Bullet from "../components/Bullet";
 import ScoreBoard from "../components/ScoreBoard";
 import GamePad from "../components/GamePad";
-import { GameState, useGameState } from "../contexts/useGameState";
 import Modal from "../components/Modal";
 import PauseCard from "../components/PauseCard";
 import Vault from "../components/Vault";
@@ -18,7 +17,6 @@ const GameHtml = () => {
     const boardRef = useRef<HTMLDivElement>(null);
     const entitiesRef = useRef<Entity[]>([]);
     const [_, setRender] = useState(performance.now());
-    const { state, setState } = useGameState();
 
 
     useEffect(() => {
@@ -36,7 +34,7 @@ const GameHtml = () => {
             let isPlaying = true;
 
             if (gameboard && gameboard.state) {
-                gameboard.state == 'playing' ? true : false;
+                isPlaying = gameboard.state == 'playing' ? true : false;
             }
 
             if (isPlaying) {
@@ -55,7 +53,7 @@ const GameHtml = () => {
         return () => {
             cancelAnimationFrame(request);
         };
-    }, [state]);
+    }, []);
 
     useEffect(() => {
         const keysSet = new Set<string>();
@@ -82,7 +80,34 @@ const GameHtml = () => {
     }, []);
 
 
+    const handleGameState = (value: Entity['state']) => {
+        let entities = entitiesRef.current;
+        const gameboard = entities[0];
+
+        if (gameboard) {
+            gameboard.state = value;
+        }
+
+    }
+
+
     let entities = entitiesRef.current;
+
+    const gameboard = entities[0];
+    let isPlaying = false;
+    let showHome = true;
+    let paused = false;
+    let showVault = false;
+    let showBindings = false;
+
+
+    if (gameboard && gameboard.state) {
+        isPlaying = gameboard.state == 'playing';
+        showHome = gameboard.state == 'home';
+        showBindings = gameboard.state == 'bindingsOpen';
+        showVault = gameboard.state == 'vaultOpen';
+        paused = gameboard.state == 'paused';
+    }
 
     return (
         <div
@@ -162,46 +187,46 @@ const GameHtml = () => {
                                 stress: { acquired: entities[1].stress, segments: 5, total: 1000 },
                             }}
 
-                            onClickPlay={() => { setState(GameState.Paused) }}
-                            onClickVault={() => { setState(GameState.ShowVault) }}
-                            onClickPad={() => { setState(GameState.ShowBindings) }}
+                            onClickPlay={() => { handleGameState('paused') }}
+                            onClickVault={() => { handleGameState('vaultOpen') }}
+                            onClickPad={() => { handleGameState('bindingsOpen') }}
                         />
                     }
 
                     <GamePad />
                     {
-                        GameState.Paused == state &&
+                        paused &&
                         <Modal>
                             <PauseCard
-                                onClickPlay={() => { setState(GameState.Playing) }}
-                                onClickHome={() => { setState(GameState.Home) }}
-                                onClickRestart={() => { setState(GameState.Restart) }}
+                                onClickPlay={() => { handleGameState('playing') }}
+                                onClickHome={() => { handleGameState('home') }}
+                                onClickRestart={() => { handleGameState('restarted') }}
                             />
                         </Modal>
                     }
                     {
-                        GameState.ShowVault == state &&
+                        showVault &&
                         <Modal>
                             <Vault
-                                onCancel={() => { setState(GameState.Playing) }}
+                                onCancel={() => { handleGameState('playing') }}
                             />
                         </Modal>
                     }
 
                     {
-                        GameState.ShowBindings == state &&
+                        showBindings &&
                         <Modal>
                             <Bindings
-                                onCancel={() => { setState(GameState.Playing) }}
+                                onCancel={() => { handleGameState('playing') }}
                             />
                         </Modal>
                     }
 
                     {
-                        GameState.Home == state &&
+                        showHome &&
                         <Modal>
                             <Intro
-                                onClickPlay={() => { setState(GameState.Playing) }}
+                                onClickPlay={() => { handleGameState('playing') }}
                             />
                         </Modal>
                     }

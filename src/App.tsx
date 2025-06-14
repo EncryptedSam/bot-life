@@ -1,10 +1,12 @@
+import Collision from "./components/Collision";
 import GameHtml from "./game/GameHtml";
 
 
 function App() {
 
   return (
-    <GameHtml />
+    <Collision />
+    // <GameHtml />
   )
 }
 

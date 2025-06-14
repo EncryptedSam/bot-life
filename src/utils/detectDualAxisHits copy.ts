@@ -1,14 +1,14 @@
 type Point = { x: number; y: number };
 type Rect = { x: number; y: number; width: number; height: number };
-type HitResult = { object: Rect; side: string; time: number } | null;
+type HitResult = { object: Rect; side: string; time: number };
 
 export function detectDualAxisHits(
   pointA: Point,
   pointB: Point,
   movingWidth: number,
   movingHeight: number,
-  collidable: Rect
-): HitResult {
+  collidables: Rect[]
+): HitResult[] {
   const velocity = {
     x: pointB.x - pointA.x,
     y: pointB.y - pointA.y,
@@ -21,18 +21,20 @@ export function detectDualAxisHits(
     height: movingHeight,
   };
 
-  let res: HitResult = null;
+  const results: HitResult[] = [];
 
-  const result = sweptAABB(movingObj, velocity, collidable);
-  if (result && result.entryBoth) {
-    res = {
-      object: collidable,
-      side: result.side,
-      time: result.time,
-    };
+  for (const target of collidables) {
+    const result = sweptAABB(movingObj, velocity, target);
+    if (result && result.entryBoth) {
+      results.push({
+        object: target,
+        side: result.side,
+        time: result.time,
+      });
+    }
   }
 
-  return res;
+  return results;
 }
 
 function sweptAABB(

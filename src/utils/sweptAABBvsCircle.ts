@@ -1,52 +1,80 @@
-type Box = { x: number; y: number; width: number; height: number };
-type Velocity = { dx: number; dy: number };
-type Collision = { time: number; normalX: number; normalY: number } | null;
+type Point = { x: number, y: number };
+type Circle = { center: Point, radius: number };
+type RectSweep = { pointA: Point, pointB: Point, width: number, height: number };
 
-export function sweptAABBvsCircle(
-  moving: Box,
-  velocity: Velocity,
-  circle: { cx: number; cy: number; radius: number }
-): Collision {
-  const boxCenterX = moving.x + moving.width / 2;
-  const boxCenterY = moving.y + moving.height / 2;
+// Helper: returns minimum and maximum of two points
+function minMax(a: number, b: number): [number, number] {
+  return a < b ? [a, b] : [b, a];
+}
 
-  const inflatedRadius =
-    circle.radius + Math.max(moving.width, moving.height) / 2;
+// Check if a moving AABB rectangle intersects a circle (static)
+export function sweptAABBvsCircle(rect: RectSweep, circle: Circle): boolean {
+  const { pointA, pointB, width, height } = rect;
+  const velocity = {
+    x: pointB.x - pointA.x,
+    y: pointB.y - pointA.y,
+  };
 
-  const relX = boxCenterX - circle.cx;
-  const relY = boxCenterY - circle.cy;
+  // Build AABB bounds at start and end positions
+  const rectA = {
+    minX: pointA.x,
+    minY: pointA.y,
+    maxX: pointA.x + width,
+    maxY: pointA.y + height,
+  };
 
-  const dx = velocity.dx;
-  const dy = velocity.dy;
+  const rectB = {
+    minX: pointB.x,
+    minY: pointB.y,
+    maxX: pointB.x + width,
+    maxY: pointB.y + height,
+  };
 
-  const a = dx * dx + dy * dy;
-  const b = 2 * (relX * dx + relY * dy);
-  const c = relX * relX + relY * relY - inflatedRadius * inflatedRadius;
+  // Build the swept AABB that covers from A to B
+  const sweptAABB = {
+    minX: Math.min(rectA.minX, rectB.minX),
+    minY: Math.min(rectA.minY, rectB.minY),
+    maxX: Math.max(rectA.maxX, rectB.maxX),
+    maxY: Math.max(rectA.maxY, rectB.maxY),
+  };
 
-  const discriminant = b * b - 4 * a * c;
+  // Early out: if the swept AABB doesn't intersect the circle's AABB, no collision
+  const circleAABB = {
+    minX: circle.center.x - circle.radius,
+    minY: circle.center.y - circle.radius,
+    maxX: circle.center.x + circle.radius,
+    maxY: circle.center.y + circle.radius,
+  };
 
-  if (discriminant < 0 || a === 0) return null;
+  const aabbOverlap =
+    sweptAABB.maxX >= circleAABB.minX &&
+    sweptAABB.minX <= circleAABB.maxX &&
+    sweptAABB.maxY >= circleAABB.minY &&
+    sweptAABB.minY <= circleAABB.maxY;
 
-  const sqrtD = Math.sqrt(discriminant);
-  const t1 = (-b - sqrtD) / (2 * a);
-  const t2 = (-b + sqrtD) / (2 * a);
+  if (!aabbOverlap) return false;
 
-  const time = t1 >= 0 && t1 <= 1 ? t1 : t2 >= 0 && t2 <= 1 ? t2 : 1;
+  // Approximate: sweep the rectangle's center as a point toward the circle
+  const rectCenterStart = {
+    x: pointA.x + width / 2,
+    y: pointA.y + height / 2,
+  };
 
-  if (time === 1) return null;
+  const dx = circle.center.x - rectCenterStart.x;
+  const dy = circle.center.y - rectCenterStart.y;
+  const radiusSum = circle.radius + Math.max(width, height) / 2;
 
-  const impactX = boxCenterX + dx * time;
-  const impactY = boxCenterY + dy * time;
+  const a = velocity.x ** 2 + velocity.y ** 2;
+  const b = 2 * (velocity.x * dx + velocity.y * dy);
+  const c = dx ** 2 + dy ** 2 - radiusSum ** 2;
 
-  let normalX = impactX - circle.cx;
-  let normalY = impactY - circle.cy;
-  const len = Math.hypot(normalX, normalY);
+  const discriminant = b ** 2 - 4 * a * c;
 
-  if (len === 0) return null;
+  if (discriminant < 0) return false;
 
-  normalX /= len;
-  normalY /= len;
+  const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+  const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
 
-  const result = { time, normalX, normalY };
-  return result;
+  // If any time `t` within [0,1] exists, a collision occurs during the sweep
+  return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
 }
