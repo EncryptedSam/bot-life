@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Circle from './Hero'
-import { angleBetweenPoints, circleCircleIntersect, detectRectCircleCollision, getCircleDiameterEndpoints } from '../utils/isCircleIntersectingOrBetween'
+import { angleBetweenPoints, circleCircleIntersect, detectCircleCircleCollision, detectRectCircleCollision, getCircleDiameterEndpoints } from '../utils/isCircleIntersectingOrBetween'
 import Rect from './Rect'
 
 interface Point {
@@ -34,7 +34,6 @@ const CollisionCircleCircle = () => {
 
     useEffect(() => {
         let circlePrevState: Circle | null = circleId != null ? circles[circleId] : null;
-
 
         let x: number = 0;
         let y: number = 0;
@@ -83,6 +82,25 @@ const CollisionCircleCircle = () => {
         let point2 = getCircleDiameterEndpoints(circle2, deg + 90);
 
         setPoints([...point1, ...point2]);
+    }, [circles]);
+
+
+    useEffect(() => {
+
+        let aCircle = circles[0];
+        let bCircle = circles[1];
+        let circle = circles[2];
+
+
+        let res = detectCircleCircleCollision({
+            a: { x: aCircle.x, y: aCircle.y }, b: { x: bCircle.x, y: bCircle.y }, radius: aCircle.radius
+        }, { center: { x: circle.x, y: circle.y }, radius: circle.radius }
+        )
+
+        console.clear();
+
+        console.log(res);
+
     }, [circles])
 
 
