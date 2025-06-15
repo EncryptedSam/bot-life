@@ -1,12 +1,16 @@
-import Collision from "./components/Collision";
+import CollisionCircleCircle from "./components/CollisionCircleCircle";
+import CollisionRectCircle from "./components/CollisionRectCircle";
 import GameHtml from "./game/GameHtml";
 
 
 function App() {
 
   return (
-    <Collision />
-    // <GameHtml />
+    <>
+      {/* <GameHtml /> */}
+      <CollisionCircleCircle />
+      {/* <CollisionRectCircle /> */}
+    </>
   )
 }
 
