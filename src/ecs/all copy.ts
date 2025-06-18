@@ -1,11 +1,3 @@
-import {
-  AABBCircle,
-  AABBRect,
-  Circle,
-  detectCircleCircleCollision,
-  detectRectCircleCollision,
-} from "../utils/isCircleIntersectingOrBetween";
-
 // =================================================================================================== utils
 type AnyObject = Record<string, any>;
 
@@ -80,15 +72,6 @@ function getRandomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
 function getCoordList(
   width: number,
   radius: number,
@@ -113,7 +96,7 @@ function getCoordList(
     a = a + seg + dia;
   }
 
-  return shuffleArray(res);
+  return res;
 }
 
 type Categories = Record<string, string>;
@@ -154,13 +137,14 @@ type Category =
   | "entertainment"
   | "activity";
 
-export type Item =
+type Item =
   | "food"
   | "water"
   | "drinks"
   | "bullets"
   | "bathroom"
   | "sleep"
+  | "paid work"
   | "work"
   | "medi kit"
   | "chat"
@@ -177,6 +161,7 @@ const itemToCategoryMap: Record<Item, Category> = {
   bathroom: "utility",
   sleep: "utility",
 
+  "paid work": "activity",
   work: "activity",
 
   "medi kit": "medical",
@@ -208,16 +193,14 @@ export interface Entity {
   velocity?: { dx: number; dy: number };
   direction?: { x: -1 | 0 | 1; y: -1 | 0 | 1 };
   lastHitBy?: "player" | "bullet" | "none";
-  status?: "move" | "hurt" | "expired";
+  status?: "move" | "dead" | "expired";
   prevPosition?: { x: number; y: number };
   damage?: number;
   lastDeploy?: number;
-
   energy?: number;
   stress?: number;
   money?: number;
   bullets?: number;
-
   dropsLife?: Record<Item, number>;
   initTime?: number;
   initialized?: boolean;
@@ -234,10 +217,9 @@ export interface Entity {
       y: number;
     };
   };
-  hurtEffect?: {
+  hitEffect?: {
     flashValue: number;
     speed: number;
-    max: number;
   };
   touchEffect?: {
     energy: number;
@@ -276,37 +258,6 @@ function createBackground(entities: Entity[]) {
   entities.push(background);
 }
 
-function getItemEffect(item: Item): Entity["touchEffect"] {
-  switch (item) {
-    case "food":
-      return { energy: 20, bullets: 0, stress: -5, money: 0 };
-    case "water":
-      return { energy: 0, bullets: 0, stress: -5, money: 0 };
-    case "drinks":
-      return { energy: 5, bullets: 0, stress: -1, money: 0 };
-    case "bullets":
-      return { energy: 0, bullets: 5, stress: 0, money: 0 };
-    case "bathroom":
-      return { energy: 2, bullets: 0, stress: -4, money: 0 };
-    case "sleep":
-      return { energy: 10, bullets: 0, stress: -10, money: 0 };
-    case "work":
-      return { energy: -5, bullets: 0, stress: 5, money: 20 };
-    case "medi kit":
-      return { energy: 5, bullets: 0, stress: -5, money: 0 };
-    case "chat":
-      return { energy: 0, bullets: 0, stress: 5, money: 0 };
-    case "music":
-      return { energy: 3, bullets: 0, stress: -8, money: 0 };
-    case "alcohol":
-      return { energy: -20, bullets: 0, stress: -1, money: 0 };
-    case "family time":
-      return { energy: 20, bullets: 0, stress: -7, money: 0 };
-    default:
-      return { energy: 0, bullets: 0, stress: 0, money: 0 };
-  }
-}
-
 function createDrop(entities: Entity[], item: Item, x: number, y: number) {
   const category = itemToCategoryMap[item];
 
@@ -323,12 +274,16 @@ function createDrop(entities: Entity[], item: Item, x: number, y: number) {
       zIndex: 1,
       speed: -0.2,
     },
-    hurtEffect: {
-      flashValue: 0,
-      speed: 50,
-      max: 100,
+    hitEffect: {
+      flashValue: 100,
+      speed: 12,
     },
-    touchEffect: getItemEffect(item),
+    touchEffect: {
+      energy: +10,
+      bullets: 0,
+      stress: 0,
+      money: 0,
+    },
     lastHitBy: "none",
   };
 
@@ -387,6 +342,7 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
       bullets: 1000,
       bathroom: 1000,
       sleep: 1000,
+      "paid work": 1000,
       work: 1000,
       "medi kit": 1000,
       chat: 1000,
@@ -439,19 +395,7 @@ export function clearRemoved(entities: Entity[]) {
   removeRemovedStatusInPlace(entities);
 }
 
-function getLastByType<T extends { type: string }>(
-  arr: T[],
-  targetType: string
-): T | undefined {
-  for (let i = arr.length - 1; i >= 0; i--) {
-    if (arr[i].type === targetType) {
-      return arr[i];
-    }
-  }
-  return undefined;
-}
-
-export function deployDrops(entities: Entity[]) {
+export function deployDrops(entities: Entity[], delta: number) {
   let gameBoard = entities[1];
   if (!gameBoard) return;
   if (!(gameBoard.type == "gameboard")) return;
@@ -463,11 +407,18 @@ export function deployDrops(entities: Entity[]) {
   if (!(typeof player.radius == "number")) return;
 
   let allowDeploy = true;
+  if (typeof gameBoard.lastDeploy == "number") {
+    // allowDeploy =
+    //   (performance.now() - gameBoard.lastDeploy) / 1000 > 4 ? true : false;
+  }
 
-  let lastDrop = getLastByType<Entity>(entities, "drop");
-
-  if (lastDrop && lastDrop.position) {
-    allowDeploy = lastDrop.position?.y > 100;
+  if (typeof gameBoard.lastDeployDistance == "number") {
+    let res = gameBoard.lastDeployDistance > 120;
+    if (res) {
+      console.log(gameBoard.lastDeployDistance);
+      gameBoard.lastDeployDistance = 0;
+    }
+    allowDeploy = res;
   }
 
   if (allowDeploy) {
@@ -477,7 +428,7 @@ export function deployDrops(entities: Entity[]) {
       25,
       Object.keys(drops).length,
       {
-        from: -30,
+        from: -player.radius,
         to: -30,
       },
       40
@@ -486,6 +437,24 @@ export function deployDrops(entities: Entity[]) {
     for (let key in drops) {
       createDrop(entities, key as Item, coords[i].x, coords[i].y);
       i++;
+    }
+
+    gameBoard.lastDeploy = performance.now();
+  }
+
+  if (entities.length > 0) {
+    let drop = entities.find((entity) => {
+      return entity.type === "drop";
+    });
+
+    if (typeof gameBoard.lastDeployDistance !== "number") {
+      gameBoard.lastDeployDistance = 0;
+      console.log("zero");
+    }
+
+    if (drop && drop.velocity) {
+      gameBoard.lastDeployDistance += drop.velocity.dy * delta;
+      // console.log({ ldd: gameBoard.lastDeployDistance });
     }
   }
 }
@@ -503,10 +472,6 @@ export function updatePosition(entities: Entity[], delta: number) {
       let { direction, velocity } = entity;
 
       if (entity.prevPosition) {
-        entity.prevPosition = { ...entity.position };
-      }
-
-      if (entity.type == "player" || entity.type == "bullet") {
         entity.prevPosition = { ...entity.position };
       }
 
@@ -561,21 +526,7 @@ export function updatePosition(entities: Entity[], delta: number) {
   });
 }
 
-export function updateStressAndEnergy(entities: Entity[], delta: number) {
-  let gameBoard = entities[1];
-  if (!gameBoard) return;
-  if (!gameBoard) return;
-  if (!gameBoard.initTime) return;
-  if (!(typeof gameBoard.energy == "number")) return;
-  if (!(typeof gameBoard.stress == "number")) return;
-  if (!(typeof gameBoard.money == "number")) return;
-  if (!(typeof gameBoard.bullets == "number")) return;
-
-  gameBoard.energy = gameBoard.energy - 0.8 * delta;
-  gameBoard.stress = gameBoard.stress + 0.8 * delta;
-}
-
-export function resolveHurt(entities: Entity[], delta: number) {
+export function updateFlash(entities: Entity[], delta: number) {
   let gameBoard = entities[1];
   if (!gameBoard) return;
   if (!(gameBoard.type == "gameboard")) return;
@@ -583,162 +534,21 @@ export function resolveHurt(entities: Entity[], delta: number) {
   if (!gameBoard.initialized) return;
 
   entities.forEach((entity) => {
-    if (entity.hurtEffect) {
-      let { speed, flashValue } = entity.hurtEffect;
+    if (entity.hitEffect) {
+      let { speed, flashValue } = entity.hitEffect;
 
       if (flashValue > 0) {
-        entity.hurtEffect.flashValue += speed * -1 * delta;
+        entity.hitEffect.flashValue += speed * -1 * delta;
       } else {
-        entity.hurtEffect.flashValue = 0;
+        entity.hitEffect.flashValue = 0;
       }
     }
   });
 }
 
-export function resolveBulletDropCollision(entities: Entity[]) {
-  let drops = entities.filter((obj) => obj.type === "drop");
-  let bullets = entities.filter((obj) => obj.type === "bullet");
+export function resolveBulletCollision(entities: Entity[]) {}
 
-  for (let i = 0; i < bullets.length; i++) {
-    for (let j = 0; j < drops.length; j++) {
-      let bullet = bullets[i];
-      let drop = drops[j];
-      let gameBoard = entities[1];
-      if (!gameBoard) return;
-      if (!gameBoard.dropsLife) return;
-      if (!bullet.prevPosition) continue;
-      if (!bullet.position) continue;
-      if (!drop.position) continue;
-      if (!drop.item) continue;
-      if (!(typeof drop.radius == "number")) continue;
-
-      let aabb: AABBRect = {
-        a: {
-          x: bullet.position.x - 7 / 2,
-          y: bullet.position.y - 16 / 2,
-        },
-        b: {
-          x: bullet.prevPosition.x - 7 / 2,
-          y: bullet.prevPosition.y - 16 / 2,
-        },
-        width: 7,
-        height: 16,
-      };
-
-      let circle: Circle = {
-        center: {
-          x: drop.position.x,
-          y: drop.position.y,
-        },
-        radius: drop.radius,
-      };
-
-      let res = detectRectCircleCollision(aabb, circle);
-
-      if (res) {
-        gameBoard.dropsLife[drop.item] -= 10;
-        bullet.status = "expired";
-
-        if (gameBoard.dropsLife[drop.item] > 0) {
-          if (!drop.hurtEffect) continue;
-          drop.status = "hurt";
-          drop.hurtEffect = {
-            ...drop.hurtEffect,
-            flashValue: drop.hurtEffect.max,
-          };
-        } else {
-          drops.forEach((item) => {
-            if (item.item == drop.item) {
-              item.status = "expired";
-            }
-          });
-        }
-      }
-    }
-  }
-}
-
-export function resolvePlayerDropCollision(entities: Entity[]) {
-  let gameBoard = entities[1];
-  if (!gameBoard) return;
-
-  let player = entities[2];
-  if (!player) return;
-  if (!player.position) return;
-  if (!player.prevPosition) return;
-  if (!(typeof player.radius == "number")) return;
-  if (player.glide) return;
-
-  let drops = entities.filter((obj) => obj.type === "drop");
-
-  let aabb: AABBCircle = {
-    a: {
-      x: player.position.x,
-      y: player.position.y,
-    },
-    b: {
-      x: player.prevPosition.x,
-      y: player.prevPosition.y,
-    },
-    radius: player.radius,
-  };
-
-  drops.forEach((item) => {
-    if (!(typeof item.radius == "number")) return;
-    if (!item.position) return;
-    if (!item.touchEffect) return;
-    if (!(typeof gameBoard.stress == "number")) return;
-    if (!(typeof gameBoard.energy == "number")) return;
-    if (!(typeof gameBoard.bullets == "number")) return;
-    if (!(typeof gameBoard.money == "number")) return;
-
-    let drop: Circle = { center: { ...item.position }, radius: item.radius };
-
-    let res = detectCircleCircleCollision(aabb, drop);
-
-    if (res) {
-      let { bullets, energy, money, stress } = item.touchEffect;
-      gameBoard.stress += stress;
-      gameBoard.energy += energy;
-      gameBoard.bullets += bullets;
-      gameBoard.money += money;
-
-      if (gameBoard.stress > 1000) {
-        gameBoard.stress = 1000;
-      }
-
-      if (gameBoard.energy > 1000) {
-        gameBoard.energy = 1000;
-      }
-
-      if (gameBoard.bullets > 1000) {
-        gameBoard.bullets = 1000;
-      }
-
-      if (gameBoard.money > 1000) {
-        gameBoard.money = 1000;
-      }
-
-      if (gameBoard.stress < 0) {
-        gameBoard.stress = 0;
-      }
-
-      if (gameBoard.energy < 0) {
-        gameBoard.energy = 0;
-      }
-
-      if (gameBoard.bullets < 0) {
-        gameBoard.bullets = 0;
-      }
-
-      if (gameBoard.money < 0) {
-        gameBoard.money = 0;
-      }
-
-      item.status = "expired";
-    }
-  });
-}
+export function resolvePlayerCollision(entities: Entity[]) {}
 
 export function resolveInputKeys(entities: Entity[], keys: string[]) {
   let gameBoard = entities[1];

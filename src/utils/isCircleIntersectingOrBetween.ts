@@ -1,7 +1,8 @@
+import { circleCircleIntersect } from "./circleCircleIntersect";
 import { rectTouchesCircle } from "./rectTouchesCircle";
 
 type Point = { x: number; y: number };
-type Circle = { center: Point; radius: number };
+export type Circle = { center: Point; radius: number };
 
 export function getCircleDiameterEndpoints(
   circle: Circle,
@@ -200,7 +201,7 @@ function getLlinePoints(
   return null;
 }
 
-type AABBRect = {
+export type AABBRect = {
   a: Point;
   b: Point;
   height: number;
@@ -233,53 +234,46 @@ function rectCircleIntersect(rect: Rect, circle: Circle): boolean {
   return distanceSquared <= circle.radius * circle.radius;
 }
 
-export function circleCircleIntersect(
-  circle1: Circle,
-  circle2: Circle
-): boolean {
-  // Calculate the distance between the centers
-  const distanceX = circle1.center.x - circle2.center.x;
-  const distanceY = circle1.center.y - circle2.center.y;
-  const distanceSquared = distanceX * distanceX + distanceY * distanceY;
-
-  // Calculate the sum of radii
-  const radiusSum = circle1.radius + circle2.radius;
-  const radiusSumSquared = radiusSum * radiusSum;
-
-  // Circles intersect if distance between centers <= sum of radii
-  return distanceSquared <= radiusSumSquared;
-}
-
-export function detectRectCircleCollision(
-  aabb: AABBRect,
-  circle: Circle
-): Point[] {
+export function detectRectCircleCollision(aabb: AABBRect, circle: Circle) {
   let res = rectCircleIntersect(
-    { height: aabb.height, width: aabb.width, point: { ...aabb.a } },
+    { point: { ...aabb.a }, height: aabb.height, width: aabb.width },
     circle
   );
 
-  //   console.log(res);
+  if (res) {
+    return true;
+  }
 
-  //   const deg = angleBetweenPoints(aabb.a, aabb.b);
+  res = rectCircleIntersect(
+    { point: { ...aabb.b }, height: aabb.height, width: aabb.width },
+    circle
+  );
 
-  //   let lines = getLlinePoints(deg, aabb.a, aabb.b, aabb.height, aabb.width);
+  if (res) {
+    return true;
+  }
 
-  //   if (lines != null) {
-  //     let res = isCircleIntersectingPolygon(
-  //       [...lines.line1, ...lines.line2],
-  //       circle
-  //     );
+  let deg = angleBetweenPoints(
+    { x: aabb.a.x, y: aabb.a.y },
+    { x: aabb.b.x, y: aabb.b.y }
+  );
 
-  //     console.log(res);
+  let lines = getLlinePoints(deg, aabb.a, aabb.b, aabb.height, aabb.width);
 
-  //     return [...lines.line1, ...lines.line2];
-  //   }
+  if (lines) {
+    let { line1, line2 } = lines;
 
-  return [];
+    res = rectTouchesCircle([...line1, ...line2], circle);
+
+    if (res) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
-interface AABBCircle {
+export interface AABBCircle {
   a: Point;
   b: Point;
   radius: number;

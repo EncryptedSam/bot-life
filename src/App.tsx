@@ -7,8 +7,8 @@ function App() {
 
   return (
     <>
-      {/* <GameHtml /> */}
-      <CollisionCircleCircle />
+      <GameHtml />
+      {/* <CollisionCircleCircle /> */}
       {/* <CollisionRectCircle /> */}
     </>
   )

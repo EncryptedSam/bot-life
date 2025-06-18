@@ -10,14 +10,14 @@ import PauseCard from "../components/PauseCard";
 import Vault from "../components/Vault";
 import Intro from "../components/Intro";
 import Bindings from "../components/Bindings";
-import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops } from "../ecs/all";
+import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops, resolvePlayerDropCollision, resolveBulletDropCollision, resolveHurt, updateStressAndEnergy } from "../ecs/all";
+import { useTabFocus } from "../hooks/useTabFocus";
 
 const GameHtml = () => {
     usePreventBrowserDefaults();
     const boardRef = useRef<HTMLDivElement>(null);
     const entitiesRef = useRef<Entity[]>([]);
     const [_, setRender] = useState(performance.now());
-
 
     useEffect(() => {
         let request: any;
@@ -42,7 +42,11 @@ const GameHtml = () => {
                 updateInitAnimation(entities, delta / 1000)
                 clearRemoved(entities);
                 deployDrops(entities);
+                updateStressAndEnergy(entities, delta / 1000);
                 updatePosition(entities, delta / 1000)
+                resolvePlayerDropCollision(entities);
+                resolveBulletDropCollision(entities);
+                resolveHurt(entities, delta / 1000)
             }
 
             setRender(performance.now());
@@ -80,6 +84,14 @@ const GameHtml = () => {
     }, []);
 
 
+    useTabFocus(
+        () => { },
+        () => {
+            const gameboard = entities[0];
+            gameboard.state = 'paused';
+        }
+    )
+
     const handleGameState = (value: Entity['state']) => {
         let entities = entitiesRef.current;
         const gameboard = entities[0];
@@ -87,7 +99,6 @@ const GameHtml = () => {
         if (gameboard) {
             gameboard.state = value;
         }
-
     }
 
 
@@ -133,9 +144,21 @@ const GameHtml = () => {
                         const entities = [];
 
                         if (entity.type == 'drop') {
-                            let { position, } = entity;
+                            const gameboard = entitiesRef.current[1];
+                            let { position, item, hurtEffect } = entity;
                             if (!position) return;
-                            entities.push(<Droppable key={`entity_${idx}`} x={position.x} y={position.y} />);
+                            if (!hurtEffect) return;
+                            if (!item) return;
+                            if (!gameboard.dropsLife) return;
+
+                            entities.push(<Droppable
+                                type={item}
+                                key={`entity_${idx}`}
+                                x={position.x}
+                                y={position.y}
+                                hp={gameboard.dropsLife[item] / 1000 * 100}
+                                hurt={(hurtEffect?.flashValue / hurtEffect?.max) * 1}
+                            />);
                         }
 
                         if (entity.type == 'player') {
