@@ -259,7 +259,7 @@ function createBackground(entities: Entity[]) {
   let background: Entity = {
     type: "background",
     position: { x: 0, y: 0 },
-    velocity: { dx: 0.6, dy: 0.6 },
+    velocity: { dx: 0.6, dy: 0.31 },
     motionLoop: {
       type: "linear",
       start: {
@@ -295,7 +295,7 @@ function getItemEffect(item: Item): Entity["touchEffect"] {
     case "medi kit":
       return { energy: 5, bullets: 0, stress: -5, money: 0 };
     case "chat":
-      return { energy: 0, bullets: 0, stress: 5, money: 0 };
+      return { energy: 0, bullets: 0, stress: -5, money: 0 };
     case "music":
       return { energy: 3, bullets: 0, stress: -8, money: 0 };
     case "alcohol":
@@ -471,7 +471,14 @@ export function deployDrops(entities: Entity[]) {
   }
 
   if (allowDeploy) {
-    const drops = pickRandomItems(itemToCategoryMap, gameBoard.dropsLife);
+    let deployDrops: Entity["dropsLife"] = JSON.parse(
+      JSON.stringify(gameBoard.dropsLife)
+    ) as Record<Item, number>;
+
+    deployDrops.bullets = 0;
+    deployDrops["medi kit"] = 0;
+
+    const drops = pickRandomItems(itemToCategoryMap, deployDrops);
     const coords = getCoordList(
       gameBoard.width,
       25,
@@ -573,6 +580,22 @@ export function updateStressAndEnergy(entities: Entity[], delta: number) {
 
   gameBoard.energy = gameBoard.energy - 0.8 * delta;
   gameBoard.stress = gameBoard.stress + 0.8 * delta;
+
+  if (gameBoard.stress > 1000) {
+    gameBoard.stress = 1000;
+  }
+
+  if (gameBoard.energy > 1000) {
+    gameBoard.energy = 1000;
+  }
+
+  if (gameBoard.stress < 0) {
+    gameBoard.stress = 0;
+  }
+
+  if (gameBoard.energy < 0) {
+    gameBoard.energy = 0;
+  }
 }
 
 export function resolveHurt(entities: Entity[], delta: number) {

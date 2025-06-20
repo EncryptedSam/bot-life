@@ -17,6 +17,8 @@ const GameHtml = () => {
     usePreventBrowserDefaults();
     const boardRef = useRef<HTMLDivElement>(null);
     const entitiesRef = useRef<Entity[]>([]);
+    const pressedRef = useRef<string[]>([]);
+
     const [_, setRender] = useState(performance.now());
 
     useEffect(() => {
@@ -70,7 +72,7 @@ const GameHtml = () => {
         };
 
         let interval = setInterval(() => {
-            resolveInputKeys(entitiesRef.current, [...keysSet])
+            resolveInputKeys(entitiesRef.current, [...keysSet, ...pressedRef.current])
         }, 1);
 
         window.addEventListener("keydown", handleKeyDown);
@@ -81,7 +83,7 @@ const GameHtml = () => {
             window.removeEventListener("keyup", handleKeyUp);
             clearInterval(interval);
         };
-    }, []);
+    }, [pressedRef]);
 
 
     useTabFocus(
@@ -98,6 +100,17 @@ const GameHtml = () => {
 
         if (gameboard) {
             gameboard.state = value;
+        }
+    }
+
+    const handleBullet = (value: 'pressed' | 'released') => {
+        if (value == 'pressed' && !pressedRef.current.includes('f')) {
+            pressedRef.current.push('f');
+        }
+
+        if (value == 'released') {
+            const index = pressedRef.current.indexOf("f");
+            if (index !== -1) pressedRef.current.splice(index, 1);
         }
     }
 
@@ -216,7 +229,10 @@ const GameHtml = () => {
                         />
                     }
 
-                    <GamePad />
+                    <GamePad
+                        onTouchBullet={handleBullet}
+                        onTouchJump={handleBullet}
+                    />
                     {
                         paused &&
                         <Modal>
