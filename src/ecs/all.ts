@@ -394,7 +394,7 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
       alcohol: 1000,
       "family time": 1000,
     },
-    initTime: performance.now(),
+    initTime: undefined,
     initialized: false,
   };
 
@@ -402,6 +402,26 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
 }
 
 // =================================================================================================== system
+
+export function resetGame(entities: Entity[], board?: HTMLDivElement | null) {
+  if (entities.length == 0) return;
+  let gameBoard = entities[1];
+  if (!(gameBoard.type == "gameboard")) return;
+  if (!gameBoard) return;
+
+  
+  
+  if(gameBoard.state == 'restarted'){
+    entities.splice(0, entities.length)
+    initGame(entities, board);
+    
+    let gameBoard = entities[1];
+    if (!(gameBoard.type == "gameboard")) return;
+    if (!gameBoard) return;
+    gameBoard.state = 'playing';
+  }
+
+}
 
 export function initGame(entities: Entity[], board?: HTMLDivElement | null) {
   if (entities.length > 0) return;
@@ -419,7 +439,6 @@ export function updateInitAnimation(entities: Entity[], delta: number) {
   let gameBoard = entities[1];
   if (!(gameBoard.type == "gameboard")) return;
   if (!gameBoard) return;
-  if (!gameBoard.initTime) return;
   if (gameBoard.initialized) return;
 
   let player = entities[2];
@@ -429,10 +448,15 @@ export function updateInitAnimation(entities: Entity[], delta: number) {
   if (!player.direction) return;
   if (!player.velocity) return;
 
-  player.position.y += player.velocity.dy * -1 * delta;
+  if (gameBoard.state == "playing") {
+    if (typeof gameBoard.initTime == "undefined") {
+      gameBoard.initTime = performance.now();
+    }
 
-  let timeDiff = (performance.now() - gameBoard.initTime) / 1000;
-  gameBoard.initialized = timeDiff > 3 ? true : false;
+    player.position.y += player.velocity.dy * -1 * delta;
+    let timeDiff = (performance.now() - gameBoard.initTime) / 1000;
+    gameBoard.initialized = timeDiff > 3 ? true : false;
+  }
 }
 
 export function clearRemoved(entities: Entity[]) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePreventBrowserDefaults } from "../hooks/usePreventBrowserDefaults";
 import Droppable from "../components/Droppable";
 import Hero from "../components/Hero";
@@ -10,8 +10,10 @@ import PauseCard from "../components/PauseCard";
 import Vault from "../components/Vault";
 import Intro from "../components/Intro";
 import Bindings from "../components/Bindings";
-import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops, resolvePlayerDropCollision, resolveBulletDropCollision, resolveHurt, updateStressAndEnergy } from "../ecs/all";
+import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops, resolvePlayerDropCollision, resolveBulletDropCollision, resolveHurt, updateStressAndEnergy, resetGame } from "../ecs/all";
 import { useTabFocus } from "../hooks/useTabFocus";
+import { DirectionKey } from "../components/JoyStick";
+import CountDown from "../components/CountDown";
 
 const GameHtml = () => {
     usePreventBrowserDefaults();
@@ -32,14 +34,19 @@ const GameHtml = () => {
             const delta = time - lastTime;
             lastTime = time;
 
-            const gameboard = entities[0];
+            const gameboard = entities[1];
             let isPlaying = true;
 
             if (gameboard && gameboard.state) {
-                isPlaying = gameboard.state == 'playing' ? true : false;
+                if (gameboard.state == 'playing' || gameboard.state == 'restarted') {
+                    isPlaying = true;
+                } else {
+                    isPlaying = false;
+                }
             }
 
             if (isPlaying) {
+                resetGame(entities, board)
                 initGame(entities, board)
                 updateInitAnimation(entities, delta / 1000)
                 clearRemoved(entities);
@@ -87,16 +94,17 @@ const GameHtml = () => {
 
 
     useTabFocus(
-        () => { },
-        () => {
-            const gameboard = entities[0];
-            gameboard.state = 'paused';
+        (isFoused) => {
+            if (!isFoused) {
+                const gameboard = entities[1];
+                gameboard.state = 'paused';
+            }
         }
     )
 
     const handleGameState = (value: Entity['state']) => {
         let entities = entitiesRef.current;
-        const gameboard = entities[0];
+        const gameboard = entities[1];
 
         if (gameboard) {
             gameboard.state = value;
@@ -114,23 +122,41 @@ const GameHtml = () => {
         }
     }
 
+    const handleGlide = (value: 'pressed' | 'released') => {
+        if (value == 'pressed' && !pressedRef.current.includes(' ')) {
+            pressedRef.current.push(' ');
+        }
+
+        if (value == 'released') {
+            const index = pressedRef.current.indexOf(" ");
+            if (index !== -1) pressedRef.current.splice(index, 1);
+        }
+    }
+
+    const handleJoyStick = useCallback((value: DirectionKey[]) => {
+        const current = pressedRef.current;
+
+        value.forEach((key) => {
+            if (!current.includes(key)) {
+                current.push(key);
+            }
+        });
+
+        for (let i = current.length - 1; i >= 0; i--) {
+            //@ts-ignore
+            if (!value.includes(current[i])) {
+                current.splice(i, 1);
+            }
+        }
+    }, []);
+
 
     let entities = entitiesRef.current;
 
-    const gameboard = entities[0];
-    let isPlaying = false;
-    let showHome = true;
-    let paused = false;
-    let showVault = false;
-    let showBindings = false;
-
-
-    if (gameboard && gameboard.state) {
-        isPlaying = gameboard.state == 'playing';
-        showHome = gameboard.state == 'home';
-        showBindings = gameboard.state == 'bindingsOpen';
-        showVault = gameboard.state == 'vaultOpen';
-        paused = gameboard.state == 'paused';
+    const gameboard = entities[1];
+    let timeDiff: number = 0;
+    if (typeof gameboard?.initTime == 'number' && !gameboard?.initialized) {
+        timeDiff = (performance.now() - gameboard.initTime) / 1000;
     }
 
     return (
@@ -150,9 +176,18 @@ const GameHtml = () => {
                     }}
                 />
 
-                {/* <Droppable x={0} y={10} /> */}
+                {
+                    !gameboard?.initialized && gameboard?.state == 'playing' &&
+
+                    <CountDown
+                        number={timeDiff + 1 > 3 ? 3 : timeDiff + 1}
+                    />
+                }
+
 
                 {
+
+                    gameboard?.state == 'playing' &&
                     entitiesRef.current.map((entity, idx) => {
                         const entities = [];
 
@@ -231,10 +266,11 @@ const GameHtml = () => {
 
                     <GamePad
                         onTouchBullet={handleBullet}
-                        onTouchJump={handleBullet}
+                        onTouchGlide={handleGlide}
+                        onTouchStick={handleJoyStick}
                     />
                     {
-                        paused &&
+                        gameboard?.state == 'paused' &&
                         <Modal>
                             <PauseCard
                                 onClickPlay={() => { handleGameState('playing') }}
@@ -244,7 +280,7 @@ const GameHtml = () => {
                         </Modal>
                     }
                     {
-                        showVault &&
+                        gameboard?.state == 'vaultOpen' &&
                         <Modal>
                             <Vault
                                 onCancel={() => { handleGameState('playing') }}
@@ -253,7 +289,7 @@ const GameHtml = () => {
                     }
 
                     {
-                        showBindings &&
+                        gameboard?.state == 'bindingsOpen' &&
                         <Modal>
                             <Bindings
                                 onCancel={() => { handleGameState('playing') }}
@@ -262,12 +298,10 @@ const GameHtml = () => {
                     }
 
                     {
-                        showHome &&
-                        <Modal>
-                            <Intro
-                                onClickPlay={() => { handleGameState('playing') }}
-                            />
-                        </Modal>
+                        gameboard?.state == 'home' &&
+                        <Intro
+                            onClickPlay={() => { handleGameState('restarted') }}
+                        />
                     }
                 </>
 

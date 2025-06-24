@@ -1,20 +1,20 @@
 import { useEffect, useRef } from "react";
 
-export function useTabFocus(onFocus: () => void, onBlur: () => void) {
+export function useTabFocus(callback: (isFocused: boolean) => void) {
   const isDocumentVisible = useRef<boolean>(!document.hidden);
 
   useEffect(() => {
     const handleFocus = () => {
       if (!document.hidden && !isDocumentVisible.current) {
         isDocumentVisible.current = true;
-        onFocus();
+        callback(true);
       }
     };
 
     const handleBlur = () => {
       if (isDocumentVisible.current) {
         isDocumentVisible.current = false;
-        onBlur();
+        callback(false);
       }
     };
 
@@ -35,5 +35,5 @@ export function useTabFocus(onFocus: () => void, onBlur: () => void) {
       window.removeEventListener("blur", handleBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [onFocus, onBlur]);
+  }, [callback]);
 }

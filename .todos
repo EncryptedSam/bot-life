@@ -11,6 +11,18 @@
         - shoot
         - move
 
-[ ] home
-[ ] you lose page
+[x] home
+[x] you lose page
 
+
+
+[ ] exchange
+[ ] drops in stright line
+[ ] 1 2 3 animation
+
+
+[x] resetGame()
+        - empty entites
+
+[ ] updateGameState()
+        - energy stress monitor

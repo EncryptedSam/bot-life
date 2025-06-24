@@ -1,6 +1,5 @@
 import React from 'react'
 import { BiShare } from 'react-icons/bi'
-import { usePressRepeat } from '../hooks/usePressRepeat'
 
 
 interface Props {
@@ -12,14 +11,6 @@ interface Props {
 
 const ActionButton = ({ type, x, y, onChange }: Props) => {
 
-    // const handlers = usePressRepeat({onChange,interval: 100 });
-    // const handlers = usePressRepeat({
-    //     onChange: (status) => {
-    //       console.log("Status:", status); // "pressed" (repeats), then "released"
-    //     },
-    //     interval: 100, // optional: how often "pressed" fires
-    //   });
-
 
     return (
         <button
@@ -28,13 +19,14 @@ const ActionButton = ({ type, x, y, onChange }: Props) => {
                 left: x,
                 bottom: y,
             }}
-            // {...handlers} 
 
-            onMouseUp={() => { onChange && onChange('released') }}
             onTouchCancel={() => { onChange && onChange('released') }}
             onTouchEnd={() => { onChange && onChange('released') }}
             onTouchStart={() => { onChange && onChange('pressed') }}
+
+            
             onMouseDown={() => { onChange && onChange('pressed') }}
+            onMouseUp={() => { onChange && onChange('released') }}
         >
             <div className='absolute opacity-[0.7] bg-white w-full h-full rounded-full left-0 top-0' />
             {
