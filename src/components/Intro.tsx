@@ -7,10 +7,10 @@ interface Props {
 
 const Intro = ({ onClickPlay }: Props) => {
     return (
-        <div className='absolute top-0 left-0 w-full h-full flex justify-center items-center bg-white' >
-            <div
+        <div className='absolute top-0 left-0 w-full h-full flex justify-center items-center' >
+            {/* <div
                 className='absolute w-full h-full graph moving-background'
-            />
+            /> */}
 
             <div className='absolute flex flex-col items-center'>
 

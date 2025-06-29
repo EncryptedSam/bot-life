@@ -10,10 +10,11 @@ import PauseCard from "../components/PauseCard";
 import Vault from "../components/Vault";
 import Intro from "../components/Intro";
 import Bindings from "../components/Bindings";
-import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops, resolvePlayerDropCollision, resolveBulletDropCollision, resolveHurt, updateStressAndEnergy, resetGame } from "../ecs/all";
+import { Entity, initGame, updateInitAnimation, resolveInputKeys, updatePosition, clearRemoved, deployDrops, resolvePlayerDropCollision, resolveBulletDropCollision, resolveHurt, updateStressAndEnergy, resetGame, updateGameState } from "../ecs/all";
 import { useTabFocus } from "../hooks/useTabFocus";
 import { DirectionKey } from "../components/JoyStick";
 import CountDown from "../components/CountDown";
+import YouLose from "../components/YouLose";
 
 const GameHtml = () => {
     usePreventBrowserDefaults();
@@ -56,6 +57,7 @@ const GameHtml = () => {
                 resolvePlayerDropCollision(entities);
                 resolveBulletDropCollision(entities);
                 resolveHurt(entities, delta / 1000)
+                updateGameState(entities)
             }
 
             setRender(performance.now());
@@ -97,7 +99,9 @@ const GameHtml = () => {
         (isFoused) => {
             if (!isFoused) {
                 const gameboard = entities[1];
-                gameboard.state = 'paused';
+                if (gameboard.state == 'playing') {
+                    gameboard.state = 'paused';
+                }
             }
         }
     )
@@ -187,7 +191,7 @@ const GameHtml = () => {
 
                 {
 
-                    gameboard?.state == 'playing' &&
+                    !['home'].includes(`${gameboard?.state}`) &&
                     entitiesRef.current.map((entity, idx) => {
                         const entities = [];
 
@@ -269,6 +273,7 @@ const GameHtml = () => {
                         onTouchGlide={handleGlide}
                         onTouchStick={handleJoyStick}
                     />
+
                     {
                         gameboard?.state == 'paused' &&
                         <Modal>
@@ -281,9 +286,20 @@ const GameHtml = () => {
                     }
                     {
                         gameboard?.state == 'vaultOpen' &&
+                        typeof gameboard.bullets == 'number' &&
+                        typeof gameboard.money == 'number' &&
                         <Modal>
                             <Vault
                                 onCancel={() => { handleGameState('playing') }}
+                                data={{
+                                    bulletCost: 10,
+                                    bullets: gameboard.bullets,
+                                    money: gameboard.money
+                                }}
+                                onExchange={({ bullets, money }) => {
+                                    gameboard.bullets = bullets;
+                                    gameboard.money = money;
+                                }}
                             />
                         </Modal>
                     }
@@ -299,9 +315,21 @@ const GameHtml = () => {
 
                     {
                         gameboard?.state == 'home' &&
-                        <Intro
-                            onClickPlay={() => { handleGameState('restarted') }}
-                        />
+                        <Modal>
+                            <Intro
+                                onClickPlay={() => { handleGameState('restarted') }}
+                            />
+                        </Modal>
+                    }
+
+                    {
+                        gameboard?.state == 'burnout' &&
+                        <Modal>
+                            <YouLose
+                                onNo={() => { handleGameState('home') }}
+                                onYes={() => { handleGameState('restarted') }}
+                            />
+                        </Modal>
                     }
                 </>
 

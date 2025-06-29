@@ -89,31 +89,46 @@ function shuffleArray<T>(arr: T[]): T[] {
   return result;
 }
 
+// function getCoordList(
+//   width: number,
+//   radius: number,
+//   cols: number,
+//   yRange: { from: number; to: number },
+//   px?: number
+// ): { x: number; y: number }[] {
+//   px = px ?? radius;
+
+//   let res: { x: number; y: number }[] = [];
+//   let w: number = width - (2 * px + 2 * radius * (cols - 1));
+
+//   let seg: number = w / cols;
+
+//   let a: number = px;
+//   let dia: number = 2 * radius;
+
+//   for (let i = 0; i < cols; i++) {
+//     let x = getRandomInRange(a, a + seg);
+//     let y = getRandomInRange(yRange.from, yRange.to);
+//     res.push({ x, y });
+//     a = a + seg + dia;
+//   }
+
+//   return shuffleArray(res);
+// }
+
 function getCoordList(
   width: number,
-  radius: number,
   cols: number,
-  yRange: { from: number; to: number },
-  px?: number
+  y: number
 ): { x: number; y: number }[] {
-  px = px ?? radius;
-
-  let res: { x: number; y: number }[] = [];
-  let w: number = width - (2 * px + 2 * radius * (cols - 1));
-
-  let seg: number = w / cols;
-
-  let a: number = px;
-  let dia: number = 2 * radius;
+  const step = width / cols;
+  const coords = [];
 
   for (let i = 0; i < cols; i++) {
-    let x = getRandomInRange(a, a + seg);
-    let y = getRandomInRange(yRange.from, yRange.to);
-    res.push({ x, y });
-    a = a + seg + dia;
+    coords.push({ x: i * step + step / 2, y });
   }
 
-  return shuffleArray(res);
+  return shuffleArray(coords);
 }
 
 type Categories = Record<string, string>;
@@ -195,7 +210,9 @@ export interface Entity {
     | "playing"
     | "paused"
     | "vaultOpen"
-    | "bindingsOpen";
+    | "bindingsOpen"
+    | "burnout"
+    | "outOfEnergy";
   lastDeployDistance?: number;
   height?: number;
   width?: number;
@@ -375,9 +392,9 @@ function createGameBoard(entities: Entity[], height: number, width: number) {
     width,
     deployCount: 0,
     energy: 1000,
-    stress: 0,
-    money: 1000,
-    bullets: 1000,
+    stress: 900,
+    money: 900,
+    bullets: 500,
     lastDeploy: undefined,
     lastFire: undefined,
     dropsLife: {
@@ -409,18 +426,15 @@ export function resetGame(entities: Entity[], board?: HTMLDivElement | null) {
   if (!(gameBoard.type == "gameboard")) return;
   if (!gameBoard) return;
 
-  
-  
-  if(gameBoard.state == 'restarted'){
-    entities.splice(0, entities.length)
+  if (gameBoard.state == "restarted") {
+    entities.splice(0, entities.length);
     initGame(entities, board);
-    
+
     let gameBoard = entities[1];
     if (!(gameBoard.type == "gameboard")) return;
     if (!gameBoard) return;
-    gameBoard.state = 'playing';
+    gameBoard.state = "playing";
   }
-
 }
 
 export function initGame(entities: Entity[], board?: HTMLDivElement | null) {
@@ -503,15 +517,20 @@ export function deployDrops(entities: Entity[]) {
     deployDrops["medi kit"] = 0;
 
     const drops = pickRandomItems(itemToCategoryMap, deployDrops);
+    // const coords = getCoordList(
+    //   gameBoard.width,
+    //   25,
+    //   Object.keys(drops).length,
+    //   {
+    //     from: -30,
+    //     to: -30,
+    //   },
+    //   40
+    // );
     const coords = getCoordList(
-      gameBoard.width,
-      25,
+      gameBoard.width - 16,
       Object.keys(drops).length,
-      {
-        from: -30,
-        to: -30,
-      },
-      40
+      -30
     );
     let i = 0;
     for (let key in drops) {
@@ -750,38 +769,6 @@ export function resolvePlayerDropCollision(entities: Entity[]) {
       gameBoard.bullets += bullets;
       gameBoard.money += money;
 
-      if (gameBoard.stress > 1000) {
-        gameBoard.stress = 1000;
-      }
-
-      if (gameBoard.energy > 1000) {
-        gameBoard.energy = 1000;
-      }
-
-      if (gameBoard.bullets > 1000) {
-        gameBoard.bullets = 1000;
-      }
-
-      if (gameBoard.money > 1000) {
-        gameBoard.money = 1000;
-      }
-
-      if (gameBoard.stress < 0) {
-        gameBoard.stress = 0;
-      }
-
-      if (gameBoard.energy < 0) {
-        gameBoard.energy = 0;
-      }
-
-      if (gameBoard.bullets < 0) {
-        gameBoard.bullets = 0;
-      }
-
-      if (gameBoard.money < 0) {
-        gameBoard.money = 0;
-      }
-
       item.status = "expired";
     }
   });
@@ -843,5 +830,56 @@ export function resolveInputKeys(entities: Entity[], keys: string[]) {
 
   if (filteredKeys.includes("ArrowUp")) {
     player.direction.y = -1;
+  }
+}
+
+export function updateGameState(entities: Entity[]) {
+  let gameBoard = entities[1];
+  if (!gameBoard) return;
+  if (!(gameBoard.type == "gameboard")) return;
+  if (!gameBoard.initialized) return;
+  if (!(typeof gameBoard.stress == "number")) return;
+  if (!(typeof gameBoard.energy == "number")) return;
+  if (!(typeof gameBoard.bullets == "number")) return;
+  if (!(typeof gameBoard.money == "number")) return;
+
+  if (gameBoard.stress > 1000) {
+    gameBoard.stress = 1000;
+  }
+
+  if (gameBoard.energy > 1000) {
+    gameBoard.energy = 1000;
+  }
+
+  if (gameBoard.bullets > 1000) {
+    gameBoard.bullets = 1000;
+  }
+
+  if (gameBoard.money > 1000) {
+    gameBoard.money = 1000;
+  }
+
+  if (gameBoard.stress < 0) {
+    gameBoard.stress = 0;
+  }
+
+  if (gameBoard.energy < 0) {
+    gameBoard.energy = 0;
+  }
+
+  if (gameBoard.bullets < 0) {
+    gameBoard.bullets = 0;
+  }
+
+  if (gameBoard.money < 0) {
+    gameBoard.money = 0;
+  }
+
+  if (gameBoard.stress >= 1000) {
+    gameBoard.state = "burnout";
+  }
+
+  if (gameBoard.energy <= 0) {
+    gameBoard.state = "outOfEnergy";
   }
 }
