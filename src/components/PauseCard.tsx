@@ -11,7 +11,7 @@ interface Props {
 const PauseCard = ({ onClickHome, onClickPlay, onClickRestart }: Props) => {
     return (
         <div
-            className='absolute w-[180px] h-[80px] border-2 rounded-full bg-white inline-flex justify-center items-center'
+            className='absolute w-[200px] h-[80px] border-2 rounded-full bg-gray-200 inline-flex justify-center items-center'
             style={{
                 filter: 'drop-shadow(6px 6px 0px rgba(0,0,0,0.4))'
             }}
@@ -20,19 +20,19 @@ const PauseCard = ({ onClickHome, onClickPlay, onClickRestart }: Props) => {
 
             <div className='absolute h-0 bottom-[0px] !space-x-3 w-full flex justify-center items-center' >
                 <button
-                    className='bg-white w-[35px] h-[35px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    className='bg-white w-[40px] h-[40px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
                     onClick={onClickRestart}
                 >
                     <BiRefresh size={20} />
                 </button>
                 <button
-                    className='bg-white w-[40px] h-[40px] rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    className='bg-white w-[50px] h-[50px] rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
                     onClick={onClickPlay}
                 >
                     <BsPlay className='!ml-1' size={30} />
                 </button>
                 <button
-                    className='bg-white w-[35px] h-[35px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
+                    className='bg-white w-[40px] h-[40px]  rounded-full border-2 inline-flex justify-center items-center cursor-pointer'
                     onClick={onClickHome}
                 >
                     <BiHome size={20} />

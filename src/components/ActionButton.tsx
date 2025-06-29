@@ -14,7 +14,7 @@ const ActionButton = ({ type, x, y, onChange }: Props) => {
 
     return (
         <button
-            className='absolute rounded-full border-2 inline-flex justify-center items-center w-[45px] h-[45px] '
+            className='absolute touch-none rounded-full border-2 inline-flex justify-center items-center w-[45px] h-[45px] '
             style={{
                 left: x,
                 bottom: y,

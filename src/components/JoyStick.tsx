@@ -171,7 +171,7 @@ const JoyStick = ({ x, y, onChange }: Props) => {
             top = parseInt(t);
         };
 
-        const handleMouseUp = () => {
+        const handleMouseUp = (event: MouseEvent | TouchEvent) => {
             allowMove = false;
             x1 = 0;
             y1 = 0;
@@ -209,7 +209,7 @@ const JoyStick = ({ x, y, onChange }: Props) => {
 
     return (
         <div
-            className={`absolute z-20 inline-flex items-center justify-center bottom-0 h-0 w-0`}
+            className={`absolute touch-none z-20 inline-flex items-center justify-center bottom-0 h-0 w-0`}
             style={{
                 right: x + 50,
                 bottom: y + 50,
