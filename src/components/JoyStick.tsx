@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 
 
@@ -171,7 +171,7 @@ const JoyStick = ({ x, y, onChange }: Props) => {
             top = parseInt(t);
         };
 
-        const handleMouseUp = (event: MouseEvent | TouchEvent) => {
+        const handleMouseUp = () => {
             allowMove = false;
             x1 = 0;
             y1 = 0;

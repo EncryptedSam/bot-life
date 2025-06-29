@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { BiHome, BiRefresh } from 'react-icons/bi'
 import { BsPlay } from 'react-icons/bs'
 

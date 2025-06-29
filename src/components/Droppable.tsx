@@ -1,17 +1,12 @@
-import React, { JSX } from 'react'
-import { TbBrandNetflix } from 'react-icons/tb'
 import { Item } from '../ecs/all';
 import { IconType } from 'react-icons';
 
 import {
     MdOutlineRestaurant,
-    MdOutlineWaterDrop,
     MdOutlineLocalBar,
     MdOutlineBathroom,
     MdOutlineBedtime,
-    MdOutlineWork,
     MdOutlineMedicalServices,
-    MdOutlineChat,
     MdOutlineMusicNote,
     MdOutlineFamilyRestroom,
     MdOutlineWorkOutline,

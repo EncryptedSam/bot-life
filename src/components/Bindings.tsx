@@ -1,4 +1,3 @@
-import React from 'react'
 import { BiChevronDown, BiChevronLeft, BiChevronRight, BiChevronUp, BiSpaceBar, BiX } from 'react-icons/bi'
 
 

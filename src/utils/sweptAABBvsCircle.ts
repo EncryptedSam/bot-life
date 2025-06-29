@@ -2,10 +2,6 @@ type Point = { x: number, y: number };
 type Circle = { center: Point, radius: number };
 type RectSweep = { pointA: Point, pointB: Point, width: number, height: number };
 
-// Helper: returns minimum and maximum of two points
-function minMax(a: number, b: number): [number, number] {
-  return a < b ? [a, b] : [b, a];
-}
 
 // Check if a moving AABB rectangle intersects a circle (static)
 export function sweptAABBvsCircle(rect: RectSweep, circle: Circle): boolean {

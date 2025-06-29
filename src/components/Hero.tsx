@@ -1,4 +1,4 @@
-import React from 'react'
+
 import Jet from './Jet'
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
     scale?: number
 }
 
-const Hero = ({ x, y, flying, firing, scale }: Props) => {
+const Hero = ({ x, y, flying, firing }: Props) => {
     return (
         <div
             className='absolute z-[1] inline-flex items-center justify-center w-0 h-0'

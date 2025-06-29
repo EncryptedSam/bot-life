@@ -1,10 +1,8 @@
-import React from 'react'
+
 import { BsEmojiExpressionless } from 'react-icons/bs'
 import { GoGraph, GoZap } from 'react-icons/go'
 import { GiBullets } from 'react-icons/gi'
 import { PiMoneyThin } from 'react-icons/pi'
-import { ImPower } from 'react-icons/im'
-
 
 interface Props {
     x: number

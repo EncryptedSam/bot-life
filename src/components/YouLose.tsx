@@ -1,8 +1,3 @@
-import React from 'react'
-import { BiHome } from 'react-icons/bi'
-import { BsPlay } from 'react-icons/bs'
-
-
 interface Props {
     onYes?(): void
     onNo?(): void

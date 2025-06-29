@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BiX } from 'react-icons/bi'
-import { BsChevronCompactRight, BsChevronLeft, BsChevronRight, BsEmojiExpressionless } from 'react-icons/bs'
+import { BsChevronCompactRight } from 'react-icons/bs'
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { GiBullets } from 'react-icons/gi'
 import { PiMoneyThin } from 'react-icons/pi'

@@ -18,16 +18,16 @@ interface Props {
 
 
 const Vault = ({ onCancel }: Props) => {
-    const [currentTab, setCurrentTab] = useState<Tab>('convert');
+    const [currentTab, _setCurrentTab] = useState<Tab>('convert');
 
-    const getClassNames = (isTrue: boolean) => {
+    // const getClassNames = (isTrue: boolean) => {
 
-        if (isTrue) {
-            return 'relative bg-white border-b-0 !pb-[2px]'
-        }
+    //     if (isTrue) {
+    //         return 'relative bg-white border-b-0 !pb-[2px]'
+    //     }
 
-        return 'bg-gray-300'
-    }
+    //     return 'bg-gray-300'
+    // }
 
     return (
         <div

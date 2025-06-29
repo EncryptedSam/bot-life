@@ -1,9 +1,8 @@
-import React from 'react'
+
 import { BsBoxes } from 'react-icons/bs'
-import { CiSettings } from 'react-icons/ci'
 import { FaRegKeyboard } from 'react-icons/fa'
-import { GoGift, GoZap } from 'react-icons/go'
-import { IoGameControllerOutline, IoPauseOutline, IoPlayOutline, IoSettingsOutline } from 'react-icons/io5'
+import { GoGift } from 'react-icons/go'
+import { IoPauseOutline, IoPlayOutline, IoSettingsOutline } from 'react-icons/io5'
 import { TbArrowsExchange2 } from 'react-icons/tb'
 
 interface Props {

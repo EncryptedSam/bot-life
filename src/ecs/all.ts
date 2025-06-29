@@ -76,10 +76,6 @@ function filterInputKeys(keys: string[]) {
   return res;
 }
 
-function getRandomInRange(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function shuffleArray<T>(arr: T[]): T[] {
   const result = [...arr];
   for (let i = result.length - 1; i > 0; i--) {

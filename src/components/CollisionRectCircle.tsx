@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Circle from './Hero'
 import { detectRectCircleCollision } from '../utils/isCircleIntersectingOrBetween'
 import Rect from './Rect'
@@ -34,7 +34,7 @@ const CollisionRectCircle = () => {
     const [rectId, setRectId] = useState<null | number>(null);
     const [circleId, setCircleId] = useState<null | number>(null);
 
-    const [points, setPoints] = useState<Point[]>([]);
+    const [points, _setPoints] = useState<Point[]>([]);
 
     useEffect(() => {
         let rectPrevState: Rect | null = rectId != null ? rects[rectId] : null;
